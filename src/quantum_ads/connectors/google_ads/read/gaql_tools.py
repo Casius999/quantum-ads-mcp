@@ -6,7 +6,7 @@ from ....core.auth.tenant import normalize_customer_id
 from ....core.query.gaql_validator import GaqlError
 from ....core.query.runner import StreamFn, run_report
 
-# Date-range literals accepted by report/change-history wrappers (prevents injection in interpolation).
+# Allowed date-range literals for report/change-history wrappers (anti-injection).
 ALLOWED_DATE_RANGES: set[str] = {
     "TODAY",
     "YESTERDAY",

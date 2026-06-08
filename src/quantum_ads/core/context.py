@@ -10,7 +10,7 @@ from .registry.registry import ConnectorRegistry
 from .safety.mode import SafetyMode
 from .versioning.version_manager import VersionManager
 
-# Given a credentials dict + API version, returns a bound stream function (customer_id, query) -> rows.
+# (creds dict, API version) -> bound stream function (customer_id, query) -> rows.
 StreamFactory = Callable[[dict[str, object], str], StreamFn]
 
 
