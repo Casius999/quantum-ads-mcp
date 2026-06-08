@@ -58,3 +58,7 @@ warn_return_any = false
 [tool.pytest.ini_options]
 addopts = "-q"
 markers = ["live: hits a real Google Ads account (requires creds, run manually)"]
+
+[tool.coverage.run]
+# Omit the live-API SDK glue (covered by the gated live smoke test) and the stdio entrypoint.
+omit = ["*/connectors/google_ads/sdk.py", "*/__main__.py"]

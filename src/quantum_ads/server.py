@@ -11,6 +11,7 @@ from dataclasses import dataclass
 
 from fastmcp import FastMCP
 
+from .connectors.google_ads.read.connector import register_google_ads_read
 from .core.auth.secret_store import EnvSecretStore
 from .core.context import ServerContext, StreamFactory
 from .core.mcp.register import add_tool
@@ -20,8 +21,8 @@ from .core.versioning.version_manager import VersionManager
 
 Connector = Callable[[FastMCP, ServerContext], None]
 
-# Connector registrars mounted by default. Google Ads read is appended in Phase G.
-DEFAULT_CONNECTORS: list[Connector] = []
+# Connector registrars mounted by default.
+DEFAULT_CONNECTORS: list[Connector] = [register_google_ads_read]
 
 _SUNSET_WARN_DAYS = 30
 
