@@ -12,17 +12,19 @@ from dataclasses import dataclass
 from fastmcp import FastMCP
 
 from .connectors.google_ads.read.connector import register_google_ads_read
+from .connectors.google_ads.write.connector import register_google_ads_write
 from .core.auth.secret_store import EnvSecretStore
-from .core.context import ServerContext, StreamFactory
+from .core.context import MutateFactory, ServerContext, StreamFactory
 from .core.mcp.register import add_tool
 from .core.registry.registry import Capability, ConnectorRegistry, ToolSpec
+from .core.safety.audit import AuditLedger
 from .core.safety.mode import SafetyMode
 from .core.versioning.version_manager import VersionManager
 
 Connector = Callable[[FastMCP, ServerContext], None]
 
 # Connector registrars mounted by default.
-DEFAULT_CONNECTORS: list[Connector] = [register_google_ads_read]
+DEFAULT_CONNECTORS: list[Connector] = [register_google_ads_read, register_google_ads_write]
 
 _SUNSET_WARN_DAYS = 30
 
@@ -106,6 +108,7 @@ def build_server(
     env: Mapping[str, str],
     stream_factory: StreamFactory,
     connectors: list[Connector] | None = None,
+    mutate_factory: MutateFactory | None = None,
 ) -> AssembledServer:
     creds = EnvSecretStore(env).get("default").to_google_ads_dict()
     version = env.get("GOOGLE_ADS_API_VERSION") or "v24"
@@ -119,6 +122,8 @@ def build_server(
         version_manager=VersionManager(version, client_factory=lambda c, v: None),
         safety=SafetyMode(read_only),
         registry=registry,
+        audit=AuditLedger.ephemeral(),
+        mutate_factory=mutate_factory,
     )
 
     app: FastMCP = FastMCP("quantum-ads")

@@ -47,7 +47,7 @@ plugins = ["pydantic.mypy"]
 
 # Untyped third-party SDK boundary — isolated and relaxed.
 [[tool.mypy.overrides]]
-module = ["google.ads.*", "google.protobuf.*"]
+module = ["google.ads.*", "google.protobuf.*", "google.api_core.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
