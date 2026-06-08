@@ -1,0 +1,11 @@
+# Quantum ADS MCP — Google Ads config template (June 2026). PLACEHOLDERS ONLY.
+# Copy to google-ads.yaml (gitignored). Prefer environment variables (see .env.example).
+
+developer_token: "INSERT_DEVELOPER_TOKEN"
+client_id: "INSERT_CLIENT_ID.apps.googleusercontent.com"
+client_secret: "INSERT_CLIENT_SECRET"
+refresh_token: "INSERT_REFRESH_TOKEN"
+use_proto_plus: True
+# login_customer_id: "INSERT_MCC_ID"   # optional, digits only
+
+# NOTE: the API version (default v24) is set at client creation, not here.
