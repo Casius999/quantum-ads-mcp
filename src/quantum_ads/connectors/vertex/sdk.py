@@ -7,9 +7,10 @@ via the live gate). Imports are local so importing this module stays cheap and c
 SDK-derived values stay implicitly typed (``Any``) — they are never annotated, mirroring the other
 connector SDK boundaries.
 
-Auth differs from the OAuth-refresh-token connectors: Vertex AI uses Application Default
-Credentials (ADC) plus a GCP project + location, derived here from the shared creds dict
-(``project`` / ``location`` keys, falling back to env-configured defaults the operator sets).
+Auth mirrors the other GCP connectors: build OAuth user credentials from the shared creds dict
+(``client_id`` / ``client_secret`` / ``refresh_token``) and pass them to ``vertexai.init`` with the
+GCP ``project`` + ``location`` and a ``quota_project_id`` (so the call bills the project where
+Vertex AI is enabled, not the OAuth client's project). Generation is billable — callers control spend.
 
 Python package: ``google-cloud-aiplatform`` (provides the ``vertexai`` namespace).
 """
@@ -29,12 +30,23 @@ _IMAGEN_MODEL = "imagen-4.0-generate-001"
 def generative_read_factory(creds: dict[str, object], version: str) -> ReadFn:
     """Build the Vertex AI ReadFn dispatching gemini / imagen / veo generation operations."""
     import vertexai
+    from google.oauth2.credentials import Credentials
     from vertexai.preview.generative_models import GenerativeModel
     from vertexai.preview.vision_models import ImageGenerationModel, VideoGenerationModel
 
     project = str(creds["project"])
     location = str(creds.get("location") or _DEFAULT_LOCATION)
-    vertexai.init(project=project, location=location)
+    quota = creds.get("quota_project_id") or project
+    oauth = Credentials(
+        token=None,
+        refresh_token=str(creds["refresh_token"]),
+        client_id=str(creds["client_id"]),
+        client_secret=str(creds["client_secret"]),
+        token_uri="https://oauth2.googleapis.com/token",
+        scopes=["https://www.googleapis.com/auth/cloud-platform"],
+        quota_project_id=str(quota) if quota else None,
+    )
+    vertexai.init(project=project, location=location, credentials=oauth)
 
     def _gemini(params: dict[str, object]) -> list[dict[str, object]]:
         model = GenerativeModel(str(params["model"]))

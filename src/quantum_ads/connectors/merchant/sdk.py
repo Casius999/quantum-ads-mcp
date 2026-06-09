@@ -25,6 +25,9 @@ def default_read_factory(creds: dict[str, object], version: str) -> ReadFn:
     from google.shopping.merchant_products_v1 import ProductsServiceClient
 
     credentials = Credentials.from_authorized_user_info(creds)
+    quota = creds.get("quota_project_id")
+    if quota:
+        credentials = credentials.with_quota_project(str(quota))
     products = ProductsServiceClient(credentials=credentials)
     accounts = AccountsServiceClient(credentials=credentials)
 
@@ -73,6 +76,9 @@ def default_mutate_factory(creds: dict[str, object], version: str) -> MutateFn:
     )
 
     credentials = Credentials.from_authorized_user_info(creds)
+    quota = creds.get("quota_project_id")
+    if quota:
+        credentials = credentials.with_quota_project(str(quota))
     inputs = ProductInputsServiceClient(credentials=credentials)
 
     def _account_path(merchant_id: str) -> str:

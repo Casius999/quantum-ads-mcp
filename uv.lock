@@ -11,9 +11,12 @@ resolution-markers = [
     "python_full_version == '3.13.*' and sys_platform == 'win32'",
     "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
-    "python_full_version < '3.13' and sys_platform == 'win32'",
-    "python_full_version < '3.13' and sys_platform == 'emscripten'",
-    "python_full_version < '3.13' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.12.*' and sys_platform == 'win32'",
+    "python_full_version < '3.12' and sys_platform == 'win32'",
+    "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
+    "python_full_version < '3.12' and sys_platform == 'emscripten'",
+    "python_full_version == '3.12.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 
 [[package]]
@@ -994,6 +997,56 @@ wheels = [
 ]
 
 [[package]]
+name = "google-shopping-merchant-accounts"
+version = "1.6.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "google-api-core", extra = ["grpc"] },
+    { name = "google-auth" },
+    { name = "google-shopping-type" },
+    { name = "grpcio" },
+    { name = "proto-plus" },
+    { name = "protobuf" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/bf/bb/59b6f166260257ba60a90470ee95840781eb786be0edf559642eb293dace/google_shopping_merchant_accounts-1.6.0.tar.gz", hash = "sha256:83add2898677189e6acc3fd9bfa33b1772f20ec391b4491781c9d22c2c5131ed", size = 1839363, upload-time = "2026-06-03T16:14:28.77Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/37/0f/ae3fc4a4f889e2afab803d7dd883f0ca0968b44c5eb4df6487b6058d5953/google_shopping_merchant_accounts-1.6.0-py3-none-any.whl", hash = "sha256:bfe5dc436f2414662d2ae26f5da0c4ea59de87cc04259cc9d0c698ad3aaca73a", size = 1831019, upload-time = "2026-06-03T16:13:16.068Z" },
+]
+
+[[package]]
+name = "google-shopping-merchant-products"
+version = "1.7.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "google-api-core", extra = ["grpc"] },
+    { name = "google-auth" },
+    { name = "google-shopping-type" },
+    { name = "grpcio" },
+    { name = "proto-plus" },
+    { name = "protobuf" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/64/b9/aae502fa432788885d9d7dd3582c38da25d3e755eeb1238c0fec8a983bbb/google_shopping_merchant_products-1.7.0.tar.gz", hash = "sha256:5e4d85b1a370c9979837ad07c11cb8cb1c8dcf9f716bc6f0ba613bd4034771e1", size = 231124, upload-time = "2026-06-03T16:14:40.528Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f6/f4/0df231732a1a175a8d7dff6b95499f52d0e7b5cf4e83ed5e408b949e2d93/google_shopping_merchant_products-1.7.0-py3-none-any.whl", hash = "sha256:aab4e92dacb7004b2205f13876e2e1875b454d7995f5da61c0da9e44bab04a2f", size = 234465, upload-time = "2026-06-03T16:13:27.812Z" },
+]
+
+[[package]]
+name = "google-shopping-type"
+version = "1.5.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "google-api-core", extra = ["grpc"] },
+    { name = "google-auth" },
+    { name = "grpcio" },
+    { name = "proto-plus" },
+    { name = "protobuf" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d3/7f/36baa5c38468e184fe0f48504d1c11ec42864576fc4700848e38f8666881/google_shopping_type-1.5.0.tar.gz", hash = "sha256:f68931b3512509458c0c514b782e63f86b8d0746883354e569e1615e6f44009f", size = 17134, upload-time = "2026-06-03T16:14:47.34Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/37/b0/2b6287659916fd70564951e5d5797ca987da3cc67897fd7a1d1724075401/google_shopping_type-1.5.0-py3-none-any.whl", hash = "sha256:afc1180f2d068713bc1bee4b1c6882876023be6ef42e1af020991dfab2595072", size = 15913, upload-time = "2026-06-03T16:13:36.852Z" },
+]
+
+[[package]]
 name = "googleapis-common-protos"
 version = "1.75.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1170,7 +1223,7 @@ name = "importlib-metadata"
 version = "9.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "zipp", marker = "python_full_version < '3.13'" },
+    { name = "zipp", marker = "python_full_version < '3.12'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/a9/01/15bb152d77b21318514a96f43af312635eb2500c96b55398d020c93d86ea/importlib_metadata-9.0.0.tar.gz", hash = "sha256:a4f57ab599e6a2e3016d7595cfd72eb4661a5106e787a95bcc90c7105b831efc", size = 56405, upload-time = "2026-03-20T06:42:56.999Z" }
 wheels = [
@@ -2288,6 +2341,8 @@ connectors = [
     { name = "google-cloud-language" },
     { name = "google-cloud-recaptcha-enterprise" },
     { name = "google-cloud-translate" },
+    { name = "google-shopping-merchant-accounts" },
+    { name = "google-shopping-merchant-products" },
     { name = "looker-sdk" },
     { name = "pytrends" },
 ]
@@ -2313,6 +2368,8 @@ requires-dist = [
     { name = "google-cloud-language", marker = "extra == 'connectors'", specifier = ">=2.13" },
     { name = "google-cloud-recaptcha-enterprise", marker = "extra == 'connectors'", specifier = ">=1.21" },
     { name = "google-cloud-translate", marker = "extra == 'connectors'", specifier = ">=3.15" },
+    { name = "google-shopping-merchant-accounts", marker = "extra == 'connectors'", specifier = ">=1.6" },
+    { name = "google-shopping-merchant-products", marker = "extra == 'connectors'", specifier = ">=1.7" },
     { name = "looker-sdk", marker = "extra == 'connectors'", specifier = ">=24.0" },
     { name = "mcp", specifier = ">=1.9" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.10" },

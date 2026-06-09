@@ -19,15 +19,39 @@ _ROOT = Path(__file__).resolve().parents[1]
 
 # Everything the live connector suite can reach. adwords kept so the same token also runs Ads.
 SCOPES = [
+    # Google Ads
     "https://www.googleapis.com/auth/adwords",
+    # GA4 (read + admin edit)
     "https://www.googleapis.com/auth/analytics.readonly",
     "https://www.googleapis.com/auth/analytics.edit",
+    # Tag Manager (read + edit/publish)
     "https://www.googleapis.com/auth/tagmanager.readonly",
+    "https://www.googleapis.com/auth/tagmanager.edit.containers",
+    # Merchant / Shopping content
     "https://www.googleapis.com/auth/content",
+    # Search Console
     "https://www.googleapis.com/auth/webmasters.readonly",
+    # YouTube Data + Analytics/Reporting
     "https://www.googleapis.com/auth/youtube.readonly",
+    "https://www.googleapis.com/auth/yt-analytics.readonly",
+    # Display & Video 360
+    "https://www.googleapis.com/auth/display-video",
+    # Campaign Manager 360
+    "https://www.googleapis.com/auth/dfatrafficking",
+    "https://www.googleapis.com/auth/dfareporting",
+    "https://www.googleapis.com/auth/ddmconversions",
+    # Search Ads 360
+    "https://www.googleapis.com/auth/doubleclicksearch",
+    # Google Business Profile
+    "https://www.googleapis.com/auth/business.manage",
+    # Ads Data Hub
+    "https://www.googleapis.com/auth/adsdatahub",
+    # GCP umbrella: BigQuery, Vertex, Translation, Natural Language, reCAPTCHA, Service Usage
     "https://www.googleapis.com/auth/cloud-platform",
 ]
+# NOTE: Workspace Admin SDK scopes are intentionally omitted — a personal @gmail account cannot
+# grant them (they require a Google Workspace org). Looker is not a Google-OAuth surface (it uses
+# its own API3 client_id/secret against a Looker instance), so it is not represented here either.
 
 
 def _load_env() -> None:
