@@ -1,12 +1,25 @@
-# Quantum ADS MCP
+<div align="center">
 
+<img src="assets/banner.svg" alt="quantum-ads-mcp — sovereign Google marketing-agency control plane" width="880">
+
+# quantum-ads-mcp
+
+[![CI](https://github.com/Casius999/quantum-ads-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Casius999/quantum-ads-mcp/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/Casius999/quantum-ads-mcp/actions/workflows/codeql.yml/badge.svg)](https://github.com/Casius999/quantum-ads-mcp/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Casius999/quantum-ads-mcp/badge)](https://scorecard.dev/viewer/?uri=github.com/Casius999/quantum-ads-mcp)
 [![Google Ads API](https://img.shields.io/badge/Google%20Ads%20API-v24-blue.svg)](https://developers.google.com/google-ads/api/docs/release-notes)
-[![Python](https://img.shields.io/badge/Python-3.11%2B-green.svg)](https://www.python.org/)
-[![MCP](https://img.shields.io/badge/MCP-FastMCP%203.4%20stdio-purple.svg)](https://modelcontextprotocol.io/)
+[![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-green.svg)](https://www.python.org/)
+[![MCP](https://img.shields.io/badge/MCP-FastMCP%203.4-purple.svg)](https://modelcontextprotocol.io/)
 [![connectors](https://img.shields.io/badge/connectors-20-orange.svg)](CONNECTORS.md)
-[![type-checked](https://img.shields.io/badge/mypy-strict-blue.svg)](pyproject.toml)
+[![mypy](https://img.shields.io/badge/mypy-strict-blue.svg)](pyproject.toml)
 [![coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)](pyproject.toml)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE)
+
+**The most complete open Model Context Protocol control plane for the Google marketing stack** — 20 connectors, read + guarded write, Ed25519 signed audit, OAuth 2.1 multi-tenant.
+
+[Architecture](#architecture) · [The 20 connectors](#the-20-connectors) · [Install](#install) · [Configure](#configure) · [Safety](#safety--honest-claims) · [Roadmap](#roadmap-remaining-for-full-production-hardening)
+
+</div>
 
 A **sovereign Google marketing-agency control plane** over the Model Context Protocol: a shared
 core (multi-tenant auth, version resilience, a GAQL/query engine, a safety spine with a signed
