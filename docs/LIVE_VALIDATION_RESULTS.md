@@ -33,7 +33,7 @@ pending a re-consent token · 🚫 blocked by an external prerequisite · ⚪ co
 | trends | interest_over_time | ✅ live-green | pytrends is unofficial + rate-limited; trending_now skipped on endpoint drift |
 | recaptcha | keys.list, annotate `validate_only` | ✅ live-green | assessment.create needs a real site key + frontend token |
 | merchant | products/accounts + insert `validate_only` | 🟢 reached · `validate_only` ✅ | reads return once the GCP project is **registered** with the Merchant account (one Merchant Center step) — then live-green |
-| vertex | Gemini micro-generation + OAuth/quota auth | 🟢 reached · auth ✅ | auth + quota wired (was broken ADC); the project exposes no accessible Gemini model (enable in Vertex AI Studio) — then live-green |
+| vertex | Gemini micro-generation (REST, `global` endpoint) | ✅ live-green | real billable Gemini 2.5 Flash-Lite round-trip via direct REST `generateContent`; Imagen/Veo on the lazy vision SDK |
 | dv360 | advertisers/campaigns/lineItems + `validate_only` | 🟢 contract-conformant · reachability-ready | method surface verified vs live discovery; no no-account list (needs a partner id) |
 | cm360 | userProfiles/campaigns/placements/reports + `validate_only` | 🟢 contract-conformant · reachability-ready | `userProfiles.list` runs empty without a CM360 account |
 | sa360 | search + listAccessible + conversion `validate_only` | 🟢 contract-conformant · reachability-ready | `customers.listAccessible` runs empty without an SA360 account |
@@ -73,9 +73,11 @@ real APIs:
 10. **sa360** — `conversions.ingest` does not exist on the `searchads360` v0 Reporting API (it is
     read-only). SA360 conversion upload lives on the `doubleclicksearch` v2 API as
     `conversion.insert`; the mutate plane now targets that API. Found by discovery conformance.
-11. **vertex** — the top-level `from vertexai.preview.vision_models import VideoGenerationModel`
-    fails on the installed SDK (the class moved), crashing the whole factory even for the Gemini
-    text path. Imagen/Veo are now lazy-imported inside their handlers.
+11. **vertex** — two faults: the top-level `VideoGenerationModel` import crashed the factory (now
+    lazy), and the deprecated `vertexai.generative_models` SDK could not reach Gemini 2.5 (served
+    from the `global` endpoint the SDK does not target) — every model returned 404. The Gemini path
+    was migrated to a direct REST `generateContent` call against the `global` endpoint (SOTA June
+    2026; the vertexai SDK is removed 2026-06-24), which round-trips live.
 12. **adh** — `build("adsdatahub", "v1")` raises `UnknownApiNameOrVersion` (adsdatahub is not in the
     bundled discovery set); pass `static_discovery=False` to fetch the live discovery document.
 13. **gbp** — the mutate factory eagerly built the legacy `mybusiness` v4 client (dead discovery →

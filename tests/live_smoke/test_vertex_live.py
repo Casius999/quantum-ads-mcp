@@ -25,7 +25,7 @@ def _creds() -> dict[str, object]:
         "refresh_token": os.environ["GOOGLE_OAUTH_REFRESH_TOKEN"],
         "project": proj,
         "quota_project_id": proj,
-        "location": os.environ.get("GOOGLE_VERTEX_LOCATION", "us-central1"),
+        "location": os.environ.get("GOOGLE_VERTEX_LOCATION", "global"),
     }
 
 
@@ -35,9 +35,9 @@ def test_vertex_gemini_micro_generation_live():
     read = generative_read_factory(_creds(), "v1")
     candidates = [
         os.environ.get("GOOGLE_VERTEX_MODEL"),
+        "gemini-2.5-flash-lite",
         "gemini-2.5-flash",
         "gemini-2.0-flash-001",
-        "gemini-1.5-flash-002",
     ]
     last_exc: Exception | None = None
     for model in [m for m in candidates if m]:
