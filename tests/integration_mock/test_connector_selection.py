@@ -41,5 +41,5 @@ def test_unknown_connector_name_is_ignored():
 
 
 def test_default_connectors_cover_nineteen_products():
-    # google_ads contributes two registrars (read + write); 19 products -> 20 registrars.
-    assert len(DEFAULT_CONNECTORS) == 20
+    # google_ads contributes two registrars (read + write); 20 products -> 21 registrars.
+    assert len(DEFAULT_CONNECTORS) == 21

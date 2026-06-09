@@ -11,6 +11,7 @@ from dataclasses import dataclass
 
 from fastmcp import FastMCP
 
+from .connectors.adh import register_adh
 from .connectors.bigquery import register_bigquery
 from .connectors.cm360 import register_cm360
 from .connectors.datamanager import register_datamanager
@@ -63,6 +64,7 @@ DEFAULT_CONNECTORS: list[Connector] = [
     register_language,
     register_workspace,
     register_recaptcha,
+    register_adh,
 ]
 
 # Stable connector name -> its registrar(s), for env-based selection
@@ -70,6 +72,7 @@ DEFAULT_CONNECTORS: list[Connector] = [
 # AI client's tool list stays manageable instead of loading every connector at once.
 _CONNECTOR_BY_NAME: dict[str, list[Connector]] = {
     "google_ads": [register_google_ads_read, register_google_ads_write],
+    "adh": [register_adh],
     "ga4": [register_ga4],
     "gtm": [register_gtm],
     "merchant": [register_merchant],

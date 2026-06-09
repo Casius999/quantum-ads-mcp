@@ -6,6 +6,7 @@ degradation) without going through FastMCP transport or any real SDK.
 
 import inspect
 
+from quantum_ads.connectors.adh import register_adh
 from quantum_ads.connectors.bigquery import register_bigquery
 from quantum_ads.connectors.cm360 import register_cm360
 from quantum_ads.connectors.datamanager import register_datamanager
@@ -53,6 +54,7 @@ REGISTRARS = [
     register_language,
     register_workspace,
     register_recaptcha,
+    register_adh,
 ]
 
 
@@ -114,6 +116,8 @@ _BACKENDS: dict[str, object] = {
     "workspace.mutate": _fake_mutate,
     "recaptcha.api": _fake_read,
     "recaptcha.mutate": _fake_mutate,
+    "adh.api": _fake_read,
+    "adh.mutate": _fake_mutate,
 }
 
 

@@ -80,6 +80,7 @@ module = [
   "quantum_ads.connectors.language.sdk",
   "quantum_ads.connectors.workspace.sdk",
   "quantum_ads.connectors.recaptcha.sdk",
+  "quantum_ads.connectors.adh.sdk",
 ]
 ignore_errors = true
 
@@ -109,5 +110,6 @@ omit = [
   "*/connectors/language/sdk.py",
   "*/connectors/workspace/sdk.py",
   "*/connectors/recaptcha/sdk.py",
+  "*/connectors/adh/sdk.py",
   "*/__main__.py",
 ]
