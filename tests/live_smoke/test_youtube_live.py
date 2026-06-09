@@ -45,13 +45,10 @@ def test_youtube_channels_get_live():
     assert rows and rows[0]["id"] == _PUBLIC_CHANNEL
 
 
-def test_youtube_batch_get_stats_live():
-    # batchGetStats is a claimed 2026 bulk endpoint; skip (don't fail) if the discovery doc lacks it.
-    try:
-        rows = _data()("videos.batchGetStats", {"video_ids": [_PUBLIC_VIDEO]})
-    except Exception as exc:  # noqa: BLE001 — surfacing endpoint availability, not asserting it
-        pytest.skip(f"videos.batchGetStats unavailable: {type(exc).__name__}")
-    assert isinstance(rows, list)
+def test_youtube_videos_list_bulk_live():
+    # The bulk-statistics path: one videos.list call with a comma-separated id list (1 unit).
+    rows = _data()("videos.list", {"video_ids": [_PUBLIC_VIDEO, "9bZkp7q19f0"]})
+    assert isinstance(rows, list) and len(rows) >= 1
 
 
 def test_youtube_update_video_validate_only_live():

@@ -47,7 +47,6 @@ def test_youtube_read_tools_registered():
     names = {t.name for t in assembled.registry.all_tools()}
     assert "youtube.channel.get" in names
     assert "youtube.videos.list" in names
-    assert "youtube.video.batch_stats" in names
     assert "youtube.playlist_items.list" in names
     assert "youtube.analytics.query" in names
     assert "youtube.reporting.ensure_jobs" in names
@@ -57,7 +56,7 @@ def test_youtube_read_tools_marked_read_only():
     assembled = _build()
     assert assembled.registry.describe_tool("youtube.channel.get").read_only is True
     assert assembled.registry.describe_tool("youtube.analytics.query").read_only is True
-    assert assembled.registry.describe_tool("youtube.video.batch_stats").read_only is True
+    assert assembled.registry.describe_tool("youtube.videos.list").read_only is True
 
 
 # --- pure builder unit tests ---
@@ -114,11 +113,12 @@ def test_get_channel_invokes_backend():
     assert rows[0]["params"] == {"channel_id": "UC_x"}
 
 
-def test_video_batch_stats_uses_batch_endpoint():
-    out = list_tools.video_batch_stats(video_ids=["v1", "v2"], read=_fake_read)
+def test_list_videos_bulk_passes_all_ids():
+    # videos.list with many ids IS the bulk-statistics path (no separate batch endpoint exists).
+    out = list_tools.list_videos(video_ids=["v1", "v2"], read=_fake_read)
     rows = out["rows"]
     assert isinstance(rows, list)
-    assert rows[0]["operation"] == "videos.batchGetStats"
+    assert rows[0]["operation"] == "videos.list"
     assert rows[0]["params"] == {"video_ids": ["v1", "v2"]}
 
 

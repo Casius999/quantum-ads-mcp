@@ -8,8 +8,10 @@ resource objects are threaded as ``Any`` here). Imports are local so importing t
 cheap and credential-free; OAuth credentials are derived from the shared Google creds dict.
 
 Backends produced here match the connector contracts:
-- ``data_read_factory``      -> ReadFn over Data API v3 (channels / videos / batchGetStats /
-  playlistItems). ``search.list`` is deliberately NOT wired (quota-scarce ~100u/call).
+- ``data_read_factory``      -> ReadFn over Data API v3 (channels / videos / playlistItems).
+  ``videos.list`` takes a comma-separated id list (1 unit for many ids — the bulk-statistics
+  path; there is no separate batch endpoint). ``search.list`` is deliberately NOT wired
+  (quota-scarce ~100u/call).
 - ``analytics_read_factory`` -> ReadFn over the Analytics API (reports.query) and the Reporting
   API (jobs.list / jobs.create). Reporting bulk reports are retained 30/60d — persist early.
 - ``mutate_factory``         -> MutateFn over Data API v3 (videos.update / playlistItems.insert).
@@ -67,7 +69,7 @@ def _items(response: dict[str, object]) -> list[dict[str, object]]:
 
 
 def data_read_factory(creds: dict[str, object], version: str) -> ReadFn:
-    """Build the Data API v3 ReadFn (channels / videos / batchGetStats / playlistItems)."""
+    """Build the Data API v3 ReadFn (channels / videos / playlistItems)."""
     service: Any = _build_service(creds, "youtube", "v3", _DATA_READ_SCOPES)
 
     def read(operation: str, params: dict[str, object]) -> list[dict[str, object]]:
@@ -75,13 +77,9 @@ def data_read_factory(creds: dict[str, object], version: str) -> ReadFn:
             request = service.channels().list(part=_CHANNEL_PARTS, id=str(params["channel_id"]))
             return _items(request.execute())
         if operation == "videos.list":
+            # Comma-separated ids in one call = the bulk-statistics path (1 unit for up to 50 ids).
             ids = ",".join(str(v) for v in cast(Sequence[object], params["video_ids"]))
             return _items(service.videos().list(part=_VIDEO_PARTS, id=ids).execute())
-        if operation == "videos.batchGetStats":
-            # 2026 cheap bulk-statistics endpoint: 1 unit for many ids vs. videos.list cost.
-            ids = ",".join(str(v) for v in cast(Sequence[object], params["video_ids"]))
-            request = service.videos().batchGetStats(id=ids)
-            return _items(request.execute())
         if operation == "playlistItems.list":
             request = service.playlistItems().list(
                 part=_PLAYLIST_ITEM_PARTS, playlistId=str(params["playlist_id"]), maxResults=50

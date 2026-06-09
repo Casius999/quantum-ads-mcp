@@ -20,7 +20,7 @@ mutated, no billable generation is invoked.
 | bigquery | datasets.list, query.dry_run, query.run, dataset `validate_only` | ✅ live-green | tables.list skipped (no dataset in project) |
 | language | translate, detect, sentiment, entities, batch_translate | ✅ live-green | Cloud Translation + Natural Language |
 | gtm | list_accounts, list_containers, tag `validate_only` | ✅ live-green | reads on `tagmanager.readonly` |
-| youtube | Data API: videos.list, channels.get, update `validate_only` | ✅ live-green | analytics surface needs `yt-analytics.readonly` (not in token); `videos.batchGetStats` skipped (not a real API method — flagged for removal) |
+| youtube | Data API: videos.list (bulk via comma-separated ids), channels.get, update `validate_only` | ✅ live-green | analytics surface needs `yt-analytics.readonly` (not in token) |
 | searchconsole | sites.list, sitemap submit `validate_only` | ✅ live-green | searchAnalytics + sitemaps.list skipped (token owns no Search Console property) |
 | trends | interest_over_time | ✅ live-green | pytrends is unofficial + rate-limited; trending_now skipped on endpoint drift |
 | recaptcha | keys.list, annotate `validate_only` | ✅ live-green | assessment.create needs a real site key + frontend token |
@@ -58,7 +58,8 @@ real APIs:
    `google.oauth2.credentials.Credentials`.
 8. **gtm** — the read plane pinned `tagmanager.edit.containers` and failed `invalid_scope` for a
    read-only token; reads now ride `tagmanager.readonly`, edit/publish ride the edit scope.
-9. **youtube** — `videos.batchGetStats` is not a real Data API v3 method (flagged for removal).
+9. **youtube** — `videos.batchGetStats` was a non-existent Data API v3 method; **removed**. The
+   bulk-statistics path is `videos.list` with a comma-separated id list (1 unit for up to 50 ids).
 
 ## Reproducing
 

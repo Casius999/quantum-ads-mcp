@@ -2,7 +2,7 @@
 
 Two read backends, both speaking the same resource-oriented ``ReadFn`` contract (the first
 argument names the operation/resource, the second carries ids/params):
-  - ``youtube.data``      -> Data API v3        (channels / videos / batch stats / playlistItems)
+  - ``youtube.data``      -> Data API v3        (channels / videos / playlistItems)
   - ``youtube.analytics`` -> YouTube Analytics+Reporting (analytics query + report-job ensure)
 
 The write backend is a ``MutateFn`` (re-exported from the safety spine) keyed ``youtube.mutate``;

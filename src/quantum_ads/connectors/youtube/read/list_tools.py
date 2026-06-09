@@ -7,8 +7,8 @@ and shapes the shared ``{"rows", "row_count"}`` envelope.
 Quota notes (June 2026 Data API v3):
 - ``search.list`` is quota-scarce (~100 units/call, ~10k/day default) — AVOID it. Enumerate a
   channel's uploads via the uploads playlist (``playlist_items.list``) instead, which is 1 unit.
-- ``video.batch_stats`` uses the 2026 ``videos.batchGetStats`` endpoint: cheap bulk statistics
-  for many video ids without paying the per-video ``videos.list`` cost.
+- ``videos.list`` accepts a comma-separated id list (up to 50): one call returns statistics for
+  many videos at 1 unit — this is the bulk-statistics path (there is no separate batch endpoint).
 - Reporting API bulk reports are retained only 30/60 days — call ``reporting.ensure_jobs`` early
   and persist the downloaded reports yourself; they are not re-fetchable after expiry.
 """
@@ -20,7 +20,6 @@ from ..types import ReadFn
 # Operation (resource) names passed as the first ReadFn argument.
 OP_CHANNEL_GET = "channels.get"
 OP_VIDEOS_LIST = "videos.list"
-OP_VIDEO_BATCH_STATS = "videos.batchGetStats"
 OP_PLAYLIST_ITEMS_LIST = "playlistItems.list"
 OP_ANALYTICS_QUERY = "analytics.query"
 OP_REPORTING_ENSURE_JOBS = "reporting.ensureJobs"
@@ -33,7 +32,7 @@ def build_channel_params(channel_id: str) -> dict[str, object]:
 
 
 def build_video_ids_params(video_ids: list[str]) -> dict[str, object]:
-    """Pure: wrap a list of video ids (shared by ``videos.list`` + ``videos.batchGetStats``)."""
+    """Pure: wrap a list of video ids for ``videos.list`` (comma-joined into one bulk call)."""
     params: dict[str, object] = {"video_ids": list(video_ids)}
     return params
 
@@ -87,13 +86,6 @@ def get_channel(*, channel_id: str, read: ReadFn) -> dict[str, object]:
 def list_videos(*, video_ids: list[str], read: ReadFn) -> dict[str, object]:
     """Tool: list full video resources (snippet/status/statistics) for a batch of video ids."""
     return run_read(operation=OP_VIDEOS_LIST, params=build_video_ids_params(video_ids), read=read)
-
-
-def video_batch_stats(*, video_ids: list[str], read: ReadFn) -> dict[str, object]:
-    """Tool: cheap bulk statistics for many video ids via the 2026 ``videos.batchGetStats``."""
-    return run_read(
-        operation=OP_VIDEO_BATCH_STATS, params=build_video_ids_params(video_ids), read=read
-    )
 
 
 def list_playlist_items(*, playlist_id: str, read: ReadFn) -> dict[str, object]:

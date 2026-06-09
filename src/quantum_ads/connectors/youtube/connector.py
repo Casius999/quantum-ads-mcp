@@ -4,7 +4,7 @@ Read tools degrade gracefully when their backend is unwired (structured
 ``BACKEND_NOT_CONFIGURED``); write tools are guarded by the shared ``WriteExecutor``
 (validate_only preview + two-step confirm + signed audit) and degrade when ``youtube.mutate``
 is unwired. Two read backends are read lazily per call:
-  - ``youtube.data``      -> Data API v3 ReadFn (channels / videos / batch stats / playlistItems)
+  - ``youtube.data``      -> Data API v3 ReadFn (channels / videos / playlistItems)
   - ``youtube.analytics`` -> Analytics+Reporting ReadFn (analytics query + report-job ensure)
 
 This is the organic counterpart to the Google Ads video-campaign surface: organic video metrics
@@ -68,12 +68,6 @@ def register_youtube(app: FastMCP, ctx: ServerContext) -> None:
             return dict(_DATA_NOT_CONFIGURED)
         return list_tools.list_videos(video_ids=video_ids, read=read)
 
-    def youtube_video_batch_stats(video_ids: list[str]) -> dict[str, object]:
-        read = _data()
-        if read is None:
-            return dict(_DATA_NOT_CONFIGURED)
-        return list_tools.video_batch_stats(video_ids=video_ids, read=read)
-
     def youtube_playlist_items_list(playlist_id: str) -> dict[str, object]:
         read = _data()
         if read is None:
@@ -115,11 +109,6 @@ def register_youtube(app: FastMCP, ctx: ServerContext) -> None:
             "youtube.videos.list",
             "List full video resources for a batch of video ids (Data API v3).",
             youtube_videos_list,
-        ),
-        (
-            "youtube.video.batch_stats",
-            "Cheap bulk statistics for many video ids via 2026 videos.batchGetStats.",
-            youtube_video_batch_stats,
         ),
         (
             "youtube.playlist_items.list",
