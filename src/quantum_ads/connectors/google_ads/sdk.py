@@ -46,9 +46,11 @@ def default_mutate_factory(creds: dict[str, object], version: str) -> MutateFn:
         campaign.resource_name = service.campaign_path(customer_id, str(op["campaign_id"]))
         campaign.status = client.enums.CampaignStatusEnum[str(op["status"])]
         client.copy_from(operation.update_mask, field_mask(None, campaign._pb))
-        response = service.mutate_campaigns(
-            customer_id=customer_id, operations=[operation], validate_only=validate_only
-        )
+        request = client.get_type("MutateCampaignsRequest")
+        request.customer_id = customer_id
+        request.operations.append(operation)
+        request.validate_only = validate_only
+        response = service.mutate_campaigns(request=request)
         return MessageToDict(response._pb)
 
     def _budget_update(
@@ -60,9 +62,11 @@ def default_mutate_factory(creds: dict[str, object], version: str) -> MutateFn:
         budget.resource_name = service.campaign_budget_path(customer_id, str(op["budget_id"]))
         budget.amount_micros = int(str(op["amount_micros"]))
         client.copy_from(operation.update_mask, field_mask(None, budget._pb))
-        response = service.mutate_campaign_budgets(
-            customer_id=customer_id, operations=[operation], validate_only=validate_only
-        )
+        request = client.get_type("MutateCampaignBudgetsRequest")
+        request.customer_id = customer_id
+        request.operations.append(operation)
+        request.validate_only = validate_only
+        response = service.mutate_campaign_budgets(request=request)
         return MessageToDict(response._pb)
 
     handlers = {"campaign": _campaign_update, "campaign_budget": _budget_update}
