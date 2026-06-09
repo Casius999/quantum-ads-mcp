@@ -109,6 +109,7 @@ def build_server(
     stream_factory: StreamFactory,
     connectors: list[Connector] | None = None,
     mutate_factory: MutateFactory | None = None,
+    backends: dict[str, object] | None = None,
 ) -> AssembledServer:
     creds = EnvSecretStore(env).get("default").to_google_ads_dict()
     version = env.get("GOOGLE_ADS_API_VERSION") or "v24"
@@ -124,6 +125,7 @@ def build_server(
         registry=registry,
         audit=AuditLedger.ephemeral(),
         mutate_factory=mutate_factory,
+        backends=backends or {},
     )
 
     app: FastMCP = FastMCP("quantum-ads")

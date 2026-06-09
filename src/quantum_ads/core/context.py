@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from .query.runner import StreamFn
 from .registry.registry import ConnectorRegistry
@@ -29,6 +29,13 @@ class ServerContext:
     registry: ConnectorRegistry
     audit: AuditLedger
     mutate_factory: MutateFactory | None = None
+    # Per-connector data-access objects keyed by name (e.g. "ga4.read", "gtm.write").
+    # Lets every product connector bring its own client without bloating the context.
+    backends: dict[str, object] = field(default_factory=dict)
+
+    def backend(self, name: str) -> object | None:
+        """Return the named backend or None if not configured (connector degrades gracefully)."""
+        return self.backends.get(name)
 
     def stream(self) -> StreamFn:
         """Build the bound read-stream function for the configured tenant + version."""
