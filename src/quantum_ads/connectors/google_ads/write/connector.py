@@ -10,7 +10,7 @@ from fastmcp import FastMCP
 from ....core.context import ServerContext
 from ....core.mcp.register import add_tool
 from ....core.registry.registry import Capability, ToolSpec
-from .executor import WriteExecutor
+from ....core.safety.write_executor import WriteExecutor
 from .mutate_tools import build_set_campaign_status_ops, build_update_budget_ops
 
 _NOT_CONFIGURED: dict[str, object] = {

@@ -1,6 +1,6 @@
-from quantum_ads.connectors.google_ads.write.executor import WriteExecutor
 from quantum_ads.core.safety.audit import AuditLedger
 from quantum_ads.core.safety.mode import SafetyMode
+from quantum_ads.core.safety.write_executor import WriteExecutor
 
 
 def _mutate_factory() -> tuple[object, list[bool]]:
