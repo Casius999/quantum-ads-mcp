@@ -8,9 +8,9 @@ SemVer.
 ### Added
 - **Google Ads write plane** — guarded `ads.campaign.set_status`, `ads.budget.update`
   (validate_only preview → two-step confirm token → Ed25519 signed audit), real SDK mutate glue.
-- **18 additional product connectors** (read + guarded write where supported): GA4, GTM
+- **19 additional product connectors** (read + guarded write where supported): GA4, GTM
   (+ server-side / Consent Mode v2), Merchant API, Data Manager API, Search Console, YouTube
-  (Data/Analytics/Reporting), DV360, CM360, SA360, BigQuery (cost-guarded), Vertex AI
+  (Data/Analytics/Reporting), DV360, CM360, SA360, BigQuery (cost-guarded), Ads Data Hub, Vertex AI
   (Gemini/Imagen/Veo), Trends, Business Profile, Looker, Meridian (MMM), Cloud Translation + NL,
   Workspace (Sheets/Drive/Slides), reCAPTCHA Enterprise.
 - **Generalized core**: `WriteExecutor` moved to `core/safety` and reused by every connector;

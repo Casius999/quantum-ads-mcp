@@ -1,6 +1,6 @@
 # Connectors
 
-19 product connectors on the shared core. Each exposes **read** tools and (where the product
+20 product connectors on the shared core. Each exposes **read** tools and (where the product
 supports mutation) **guarded write** tools — write tools take a `confirm` arg and run
 `validate_only` preview → two-step confirm → signed audit via the core `WriteExecutor`.
 
@@ -22,6 +22,7 @@ wired at server assembly; until wired, a tool degrades to `{"error": {"code":
 | **cm360** | `cm360.user_profiles.list`, `cm360.campaigns.list`, `cm360.placements.list`, `cm360.reports.list`, `cm360.report.run`, `cm360.floodlight_activities.list`, `cm360.placement.update`, `cm360.report.insert` | `cm360.api`, `cm360.mutate` | `google-api-python-client` (dfareporting v4) |
 | **sa360** | `sa360.search`, `sa360.customers.list_accessible`, `sa360.report.campaign/ad_group`, `sa360.conversion.upload` | `sa360.api`, `sa360.mutate` | `google-api-python-client` (searchads360 v0) |
 | **bigquery** | `bigquery.datasets.list`, `bigquery.tables.list`, `bigquery.query.dry_run` (cost estimate), `bigquery.query.run` (max_bytes_billed ceiling), `bigquery.dataset.create`, `bigquery.table.create` | `bigquery.api`, `bigquery.mutate` | `google-cloud-bigquery` |
+| **adh** | `adh.customers.list`, `adh.queries.list`, `adh.query.start`, `adh.jobs.get`, `adh.query.create` (privacy-safe aggregated SQL) | `adh.api`, `adh.mutate` | `google-api-python-client` (adsdatahub v1) |
 | **vertex** | `vertex.gemini.generate`, `vertex.imagen.generate`, `vertex.veo.generate`, `vertex.gemini.generate_ad_copy` | `vertex.api` | `google-cloud-aiplatform` (`vertexai`) |
 | **trends** | `trends.interest_over_time`, `trends.related_queries`, `trends.trending_now`, `trends.interest_by_region` | `trends.api` | `pytrends` (unofficial) |
 | **gbp** | `gbp.accounts.list`, `gbp.locations.list`, `gbp.location.get`, `gbp.performance.fetch`, `gbp.reviews.list` (allowlist), `gbp.review.reply`, `gbp.location.update` | `gbp.api`, `gbp.reviews`, `gbp.mutate` | `google-api-python-client` (mybusiness v1 + v4 reviews) |

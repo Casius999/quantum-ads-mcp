@@ -3,18 +3,18 @@
 [![Google Ads API](https://img.shields.io/badge/Google%20Ads%20API-v24-blue.svg)](https://developers.google.com/google-ads/api/docs/release-notes)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-green.svg)](https://www.python.org/)
 [![MCP](https://img.shields.io/badge/MCP-FastMCP%203.4%20stdio-purple.svg)](https://modelcontextprotocol.io/)
-[![connectors](https://img.shields.io/badge/connectors-19-orange.svg)](CONNECTORS.md)
+[![connectors](https://img.shields.io/badge/connectors-20-orange.svg)](CONNECTORS.md)
 [![type-checked](https://img.shields.io/badge/mypy-strict-blue.svg)](pyproject.toml)
 [![coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)](pyproject.toml)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE)
 
 A **sovereign Google marketing-agency control plane** over the Model Context Protocol: a shared
 core (multi-tenant auth, version resilience, a GAQL/query engine, a safety spine with a signed
-audit ledger) and **19 pluggable per-product connectors** spanning the entire Google marketing
+audit ledger) and **20 pluggable per-product connectors** spanning the entire Google marketing
 stack. Built for an AI agent to operate that stack at full granularity, safely.
 
 > **Status.** The full connector surface is built and tested at the logic layer: **read + guarded
-> write across 19 products**, every tool exercised by mocked tests (no live SDK needed). The
+> write across 20 products**, every tool exercised by mocked tests (no live SDK needed). The
 > per-product **live SDK glue is isolated in `sdk.py` modules and smoke-gated** (verified against
 > real APIs with your own credentials, not in CI). Remaining for full production hardening: remote
 > OAuth 2.1 transport + multi-tenant secret store + observability (see Roadmap). Read-only by
@@ -28,7 +28,7 @@ the capable commercial ones are closed and remote-only. **No open, self-hostable
 simultaneously complete across the stack, write-capable, safe, tested, version-resilient, and
 multi-product.** Quantum ADS fills that gap.
 
-## The 19 connectors
+## The 20 connectors
 
 | Domain | Connectors |
 |--------|-----------|
@@ -36,7 +36,7 @@ multi-product.** Quantum ADS fills that gap.
 | **Measurement** | GA4 (Data + Admin), Data Manager API (Customer Match + conversions), Search Console |
 | **Catalog / tagging** | Merchant API, Google Tag Manager (+ server-side, Consent Mode v2) |
 | **Channels** | YouTube (Data + Analytics + Reporting), Business Profile, Trends |
-| **Warehouse / BI / MMM** | BigQuery (cost-guarded), Looker, Meridian (Bayesian MMM) |
+| **Warehouse / BI / MMM** | BigQuery (cost-guarded), Ads Data Hub, Looker, Meridian (Bayesian MMM) |
 | **Creative / ops** | Vertex AI (Gemini / Imagen 4 / Veo 3), Cloud Translation + NL, Workspace (Sheets/Drive/Slides), reCAPTCHA Enterprise |
 
 Full tool catalog, backend keys, and required SDK packages: **[CONNECTORS.md](CONNECTORS.md)**.
