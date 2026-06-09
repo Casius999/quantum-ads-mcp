@@ -6,11 +6,15 @@ degradation) without going through FastMCP transport or any real SDK.
 
 import inspect
 
+from quantum_ads.connectors.datamanager import register_datamanager
+from quantum_ads.connectors.dv360 import register_dv360
 from quantum_ads.connectors.ga4 import register_ga4
 from quantum_ads.connectors.google_ads.read.connector import register_google_ads_read
 from quantum_ads.connectors.google_ads.write.connector import register_google_ads_write
 from quantum_ads.connectors.gtm import register_gtm
 from quantum_ads.connectors.merchant import register_merchant
+from quantum_ads.connectors.searchconsole import register_searchconsole
+from quantum_ads.connectors.youtube import register_youtube
 from quantum_ads.core.context import ServerContext
 from quantum_ads.core.registry.registry import ConnectorRegistry
 from quantum_ads.core.safety.audit import AuditLedger
@@ -23,6 +27,10 @@ REGISTRARS = [
     register_ga4,
     register_gtm,
     register_merchant,
+    register_datamanager,
+    register_searchconsole,
+    register_youtube,
+    register_dv360,
 ]
 
 
@@ -56,6 +64,15 @@ _BACKENDS: dict[str, object] = {
     "gtm.mutate": _fake_mutate,
     "merchant.api": _fake_read,
     "merchant.mutate": _fake_mutate,
+    "datamanager.api": _fake_mutate,
+    "datamanager.read": _fake_read,
+    "searchconsole.api": _fake_read,
+    "searchconsole.mutate": _fake_mutate,
+    "youtube.data": _fake_read,
+    "youtube.analytics": _fake_read,
+    "youtube.mutate": _fake_mutate,
+    "dv360.api": _fake_read,
+    "dv360.mutate": _fake_mutate,
 }
 
 

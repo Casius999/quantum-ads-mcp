@@ -11,11 +11,15 @@ from dataclasses import dataclass
 
 from fastmcp import FastMCP
 
+from .connectors.datamanager import register_datamanager
+from .connectors.dv360 import register_dv360
 from .connectors.ga4 import register_ga4
 from .connectors.google_ads.read.connector import register_google_ads_read
 from .connectors.google_ads.write.connector import register_google_ads_write
 from .connectors.gtm import register_gtm
 from .connectors.merchant import register_merchant
+from .connectors.searchconsole import register_searchconsole
+from .connectors.youtube import register_youtube
 from .core.auth.secret_store import EnvSecretStore
 from .core.context import MutateFactory, ServerContext, StreamFactory
 from .core.mcp.register import add_tool
@@ -33,6 +37,10 @@ DEFAULT_CONNECTORS: list[Connector] = [
     register_ga4,
     register_gtm,
     register_merchant,
+    register_datamanager,
+    register_searchconsole,
+    register_youtube,
+    register_dv360,
 ]
 
 _SUNSET_WARN_DAYS = 30

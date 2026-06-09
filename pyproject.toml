@@ -39,6 +39,8 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
+# E501 (line length) is enforced for code by the formatter; allow long docstrings/strings.
+ignore = ["E501"]
 
 [tool.mypy]
 strict = true
@@ -62,6 +64,10 @@ module = [
   "quantum_ads.connectors.ga4.sdk",
   "quantum_ads.connectors.gtm.sdk",
   "quantum_ads.connectors.merchant.sdk",
+  "quantum_ads.connectors.datamanager.sdk",
+  "quantum_ads.connectors.searchconsole.sdk",
+  "quantum_ads.connectors.youtube.sdk",
+  "quantum_ads.connectors.dv360.sdk",
 ]
 ignore_errors = true
 
@@ -76,5 +82,9 @@ omit = [
   "*/connectors/ga4/sdk.py",
   "*/connectors/gtm/sdk.py",
   "*/connectors/merchant/sdk.py",
+  "*/connectors/datamanager/sdk.py",
+  "*/connectors/searchconsole/sdk.py",
+  "*/connectors/youtube/sdk.py",
+  "*/connectors/dv360/sdk.py",
   "*/__main__.py",
 ]
