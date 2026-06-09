@@ -5,7 +5,13 @@ broad-scope OAuth token (since revoked). The suite lives under `tests/live_smoke
 `uv run pytest -m live`. It performs **reads and `validate_only` previews only** — no account is
 mutated, no billable generation is invoked.
 
-**Last run:** 32 passed · 6 skipped · 0 failed.
+**Last live run:** 32 passed · 6 skipped · 0 failed.
+**Discovery conformance:** 12/12 surfaces pass (account-free, token-free API-contract check).
+**Wired, runs on the next re-consent:** merchant, vertex, and the dv360/cm360/sa360/adh/gbp
+reachability suites.
+
+Legend: ✅ live-green (real round-trip) · 🟢 contract-conformant + reachability-ready · 🟡 wired,
+pending a re-consent token · 🚫 blocked by an external prerequisite · ⚪ code-complete only.
 
 > Every "skipped" below is an honest gap (a missing owned resource, an un-granted scope, or a
 > non-existent endpoint) — never a silenced failure. Each `validate_only` mutate short-circuits to a
@@ -24,15 +30,17 @@ mutated, no billable generation is invoked.
 | searchconsole | sites.list, sitemap submit `validate_only` | ✅ live-green | searchAnalytics + sitemaps.list skipped (token owns no Search Console property) |
 | trends | interest_over_time | ✅ live-green | pytrends is unofficial + rate-limited; trending_now skipped on endpoint drift |
 | recaptcha | keys.list, annotate `validate_only` | ✅ live-green | assessment.create needs a real site key + frontend token |
-| vertex | Gemini / Imagen / Veo generation | 🚫 not validated | generation-only surface = **billable** (excluded by the no-paid-call rule) and uses ADC, not the OAuth token |
-| merchant | Merchant API products/accounts | 🚫 not validated | SDK intentionally omitted from the `connectors` extra; targets `merchantapi.googleapis.com` (not enabled) |
-| dv360 / cm360 / sa360 | Display & Video 360 / Campaign Manager / Search Ads 360 | 🚫 out of token scope | needs display-video / dfatrafficking / doubleclicksearch scopes |
-| gbp | Google Business Profile | 🚫 out of token scope | needs `business.manage` |
-| workspace | Admin SDK | 🚫 out of token scope | needs Workspace admin scopes |
-| adh | Ads Data Hub | 🚫 out of token scope | needs `adsdatahub` scope |
-| looker | Looker instance | 🚫 no instance | needs a Looker instance + API3 creds |
-| meridian | MMM library | 🚫 n/a | library-only, no hosted API to call |
-| datamanager | Data Manager API | 🚫 out of token scope | distinct grant |
+| merchant | Merchant API products/accounts + insert `validate_only` | 🟡 wired, runs on re-consent | SDK now installed (clean resolve) + `quota_project_id` routed; owner holds the account. Needs `merchantapi` enabled. |
+| vertex | Gemini micro-generation (Imagen/Veo excluded) | 🟡 wired, runs on re-consent | OAuth + quota auth wired (was a broken implicit ADC). One **billable** Gemini Flash call (opt-in). |
+| dv360 | advertisers/campaigns/lineItems + `validate_only` | 🟢 contract-conformant · reachability-ready | method surface verified vs live discovery; no no-account list (needs a partner id) |
+| cm360 | userProfiles/campaigns/placements/reports + `validate_only` | 🟢 contract-conformant · reachability-ready | `userProfiles.list` runs empty without a CM360 account |
+| sa360 | search + listAccessible + conversion `validate_only` | 🟢 contract-conformant · reachability-ready | `customers.listAccessible` runs empty without an SA360 account |
+| adh | customers/queries + create `validate_only` | 🟢 contract-conformant · reachability-ready | `customers.list` runs empty without an ADH account |
+| gbp | accounts/locations/performance + `validate_only` | 🟢 contract-conformant · reachability-ready | `accounts.list` runs empty for a personal account with no listing |
+| datamanager | audience/conversion uploads | ⚪ code-complete | needs the Data Manager grant + an Ads data partner |
+| workspace | Admin SDK | 🚫 needs a Workspace org | a personal @gmail account cannot grant admin scopes |
+| looker | Looker instance | 🚫 needs a Looker instance | paid Looker (Google Cloud core) instance + API3 creds |
+| meridian | MMM library (local) | 🟡 isolated-venv validation | heavy TensorFlow/tfp-nightly stack; validate in a throwaway venv (not a shared extra) |
 
 ## Bugs found by live testing (and fixed)
 
@@ -60,6 +68,21 @@ real APIs:
    read-only token; reads now ride `tagmanager.readonly`, edit/publish ride the edit scope.
 9. **youtube** — `videos.batchGetStats` was a non-existent Data API v3 method; **removed**. The
    bulk-statistics path is `videos.list` with a comma-separated id list (1 unit for up to 50 ids).
+10. **sa360** — `conversions.ingest` does not exist on the `searchads360` v0 Reporting API (it is
+    read-only). SA360 conversion upload lives on the `doubleclicksearch` v2 API as
+    `conversion.insert`; the mutate plane now targets that API. Found by discovery conformance.
+
+## API-contract conformance (no account, no token, no cost)
+
+`tests/live_smoke/test_discovery_conformance.py` validates every discovery-based connector's method
+surface against Google's actual API contract: it loads each API's discovery document — the one
+google-api-python-client bundles, i.e. exactly what the connector loads at runtime — and asserts that
+every method the connector calls exists. **12/12 surfaces pass** (dv360, cm360, sa360 reporting +
+conversions, adh, gtm, Search Console webmasters + URL inspection, youtube, and the three GBP hosts).
+
+This is the layer that needs no enterprise account, token, or spend: it proves a connector targets
+real endpoints even where we cannot own the data. It is what caught both non-existent-endpoint bugs
+(youtube `videos.batchGetStats` and sa360 `conversions.ingest`).
 
 ## Reproducing
 
