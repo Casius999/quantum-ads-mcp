@@ -1,0 +1,17 @@
+{
+  "name": "quantum-ads-mcp",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "postCreateCommand": "pipx install uv && uv sync --extra dev && uv run pre-commit install --hook-type pre-commit --hook-type commit-msg",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "charliermarsh.ruff",
+        "ms-python.python",
+        "ms-python.mypy-type-checker"
+      ]
+    }
+  }
+}
