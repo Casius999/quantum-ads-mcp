@@ -141,6 +141,8 @@ def admin_mutate_factory(creds: dict[str, object], version: str) -> MutateFn:
                 "parent": parent,
                 "display_name": str(op["display_name"]),
             }
+        from google.analytics.admin_v1beta import Audience
+
         clauses = cast(Sequence[object], op["filter_clauses"])
         audience = Audience(
             display_name=str(op["display_name"]),
