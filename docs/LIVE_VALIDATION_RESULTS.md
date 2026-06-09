@@ -10,7 +10,10 @@ mutated, no billable generation is invoked.
 **Broad-token run (17 scopes granted, 8 further APIs enabled):** 0 failures. merchant, vertex, and
 the dv360/cm360/sa360/adh/gbp reachability suites all ran — every `validate_only` contract passes and
 every read either returns data or **skips as "reached the API, gated externally"** (no enterprise
-account / Merchant registration / Vertex model access / a default quota of 0) — never a code failure.
+account / a default quota of 0) — never a code failure. Two gates were then removed **programmatically**:
+merchant via the Merchant API `developerRegistration:registerGcp` (registers the project with the
+Merchant account), and vertex by migrating the Gemini path to the REST `global` endpoint — both are
+now **live-green** (real round-trips).
 
 Legend: ✅ live-green (real round-trip) · 🟢 contract-conformant + reachability-ready · 🟡 wired,
 pending a re-consent token · 🚫 blocked by an external prerequisite · ⚪ code-complete only.
@@ -32,7 +35,7 @@ pending a re-consent token · 🚫 blocked by an external prerequisite · ⚪ co
 | searchconsole | sites.list, sitemap submit `validate_only` | ✅ live-green | searchAnalytics + sitemaps.list skipped (token owns no Search Console property) |
 | trends | interest_over_time | ✅ live-green | pytrends is unofficial + rate-limited; trending_now skipped on endpoint drift |
 | recaptcha | keys.list, annotate `validate_only` | ✅ live-green | assessment.create needs a real site key + frontend token |
-| merchant | products/accounts + insert `validate_only` | 🟢 reached · `validate_only` ✅ | reads return once the GCP project is **registered** with the Merchant account (one Merchant Center step) — then live-green |
+| merchant | products/accounts + insert `validate_only` | ✅ live-green | GCP project registered with the Merchant account programmatically via the Merchant API `developerRegistration:registerGcp`; all three pass |
 | vertex | Gemini micro-generation (REST, `global` endpoint) | ✅ live-green | real billable Gemini 2.5 Flash-Lite round-trip via direct REST `generateContent`; Imagen/Veo on the lazy vision SDK |
 | dv360 | advertisers/campaigns/lineItems + `validate_only` | 🟢 contract-conformant · reachability-ready | method surface verified vs live discovery; no no-account list (needs a partner id) |
 | cm360 | userProfiles/campaigns/placements/reports + `validate_only` | 🟢 contract-conformant · reachability-ready | `userProfiles.list` runs empty without a CM360 account |
