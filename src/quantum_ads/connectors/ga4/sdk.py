@@ -25,6 +25,7 @@ _ADMIN_EDIT_SCOPES = ["https://www.googleapis.com/auth/analytics.edit"]
 def _oauth_credentials(creds: dict[str, object], scopes: list[str]) -> Any:
     from google.oauth2.credentials import Credentials
 
+    quota_project = creds.get("quota_project_id")
     return Credentials(
         token=None,
         refresh_token=str(creds["refresh_token"]),
@@ -32,6 +33,7 @@ def _oauth_credentials(creds: dict[str, object], scopes: list[str]) -> Any:
         client_secret=str(creds["client_secret"]),
         token_uri="https://oauth2.googleapis.com/token",
         scopes=scopes,
+        quota_project_id=str(quota_project) if quota_project else None,
     )
 
 
@@ -95,9 +97,13 @@ def admin_read_factory(creds: dict[str, object], version: str) -> ReadFn:
 
     def read(operation: str, params: dict[str, object]) -> list[dict[str, object]]:
         if operation == "listProperties":
+            from google.analytics.admin_v1beta.types import ListPropertiesRequest
+
             account = str(params["account_id"])
             account = account if account.startswith("accounts/") else f"accounts/{account}"
-            items = client.list_properties(filter=f"parent:{account}")
+            items = client.list_properties(
+                request=ListPropertiesRequest(filter=f"parent:{account}")
+            )
         elif operation == "listDataStreams":
             items = client.list_data_streams(parent=_property_path(str(params["property_id"])))
         elif operation == "listKeyEvents":
@@ -112,7 +118,6 @@ def admin_read_factory(creds: dict[str, object], version: str) -> ReadFn:
 def admin_mutate_factory(creds: dict[str, object], version: str) -> MutateFn:
     """Build the Admin API MutateFn handling create key event / create audience (entity dicts)."""
     from google.analytics.admin_v1beta import AnalyticsAdminServiceClient
-    from google.analytics.admin_v1beta.types import Audience, KeyEvent
     from google.protobuf.json_format import MessageToDict
 
     client = AnalyticsAdminServiceClient(credentials=_oauth_credentials(creds, _ADMIN_EDIT_SCOPES))
@@ -121,6 +126,8 @@ def admin_mutate_factory(creds: dict[str, object], version: str) -> MutateFn:
         parent = _property_path(str(op["property_id"]))
         if validate_only:
             return {"validate_only": True, "parent": parent, "event_name": str(op["event_name"])}
+        from google.analytics.admin_v1beta import KeyEvent
+
         key_event = KeyEvent(event_name=str(op["event_name"]))
         response = client.create_key_event(parent=parent, key_event=key_event)
         result: dict[str, object] = MessageToDict(response._pb)
