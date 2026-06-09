@@ -26,6 +26,8 @@ def execute_query(customer_id: str, query: str, stream: StreamFn) -> dict[str, o
         rows = run_report(cid, query, stream=stream)
     except GaqlError as exc:
         return {"error": {"code": "GAQL_INVALID", "message": str(exc)}}
+    except Exception as exc:  # tool boundary: never throw — structure API/transport errors
+        return {"error": {"code": type(exc).__name__, "message": str(exc)[:500]}}
     return {"rows": rows, "row_count": len(rows)}
 
 
