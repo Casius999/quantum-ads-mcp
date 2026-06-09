@@ -31,6 +31,7 @@ def _build_service(creds: dict[str, object], version: str) -> Any:
     from google.oauth2.credentials import Credentials
     from googleapiclient.discovery import build
 
+    quota = creds.get("quota_project_id")
     credentials = Credentials(
         token=None,
         refresh_token=str(creds.get("refresh_token")),
@@ -38,6 +39,7 @@ def _build_service(creds: dict[str, object], version: str) -> Any:
         client_id=str(creds.get("client_id")),
         client_secret=str(creds.get("client_secret")),
         scopes=[DISPLAY_VIDEO_SCOPE],
+        quota_project_id=str(quota) if quota else None,
     )
     return build("displayvideo", version or "v4", credentials=credentials, cache_discovery=False)
 

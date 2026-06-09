@@ -41,6 +41,7 @@ _MYBUSINESS_V4_DISCOVERY = "https://mybusiness.googleapis.com/$discovery/rest?ve
 def _oauth_credentials(creds: dict[str, object]) -> Any:
     from google.oauth2.credentials import Credentials
 
+    quota = creds.get("quota_project_id")
     return Credentials(
         token=None,
         refresh_token=str(creds["refresh_token"]),
@@ -48,6 +49,7 @@ def _oauth_credentials(creds: dict[str, object]) -> Any:
         client_secret=str(creds["client_secret"]),
         token_uri="https://oauth2.googleapis.com/token",
         scopes=[BUSINESS_MANAGE_SCOPE],
+        quota_project_id=str(quota) if quota else None,
     )
 
 

@@ -39,6 +39,7 @@ _WRITE_SCOPES = ["https://www.googleapis.com/auth/doubleclicksearch"]
 def _oauth_credentials(creds: dict[str, object], scopes: list[str]) -> Any:
     from google.oauth2.credentials import Credentials
 
+    quota = creds.get("quota_project_id")
     return Credentials(
         token=None,
         refresh_token=str(creds["refresh_token"]),
@@ -46,6 +47,7 @@ def _oauth_credentials(creds: dict[str, object], scopes: list[str]) -> Any:
         client_secret=str(creds["client_secret"]),
         token_uri="https://oauth2.googleapis.com/token",
         scopes=scopes,
+        quota_project_id=str(quota) if quota else None,
     )
 
 
