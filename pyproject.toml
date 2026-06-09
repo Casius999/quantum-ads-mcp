@@ -53,7 +53,7 @@ module = [
   "google.ads.*", "google.protobuf.*", "google.api_core.*",
   "google.analytics.*", "google.cloud.*", "googleapiclient.*",
   "google_auth_oauthlib.*", "google.oauth2.*", "google.auth.*",
-  "google.shopping.*",
+  "google.shopping.*", "vertexai.*", "pytrends.*",
 ]
 ignore_missing_imports = true
 
@@ -68,6 +68,11 @@ module = [
   "quantum_ads.connectors.searchconsole.sdk",
   "quantum_ads.connectors.youtube.sdk",
   "quantum_ads.connectors.dv360.sdk",
+  "quantum_ads.connectors.cm360.sdk",
+  "quantum_ads.connectors.sa360.sdk",
+  "quantum_ads.connectors.bigquery.sdk",
+  "quantum_ads.connectors.vertex.sdk",
+  "quantum_ads.connectors.trends.sdk",
 ]
 ignore_errors = true
 
@@ -86,5 +91,10 @@ omit = [
   "*/connectors/searchconsole/sdk.py",
   "*/connectors/youtube/sdk.py",
   "*/connectors/dv360/sdk.py",
+  "*/connectors/cm360/sdk.py",
+  "*/connectors/sa360/sdk.py",
+  "*/connectors/bigquery/sdk.py",
+  "*/connectors/vertex/sdk.py",
+  "*/connectors/trends/sdk.py",
   "*/__main__.py",
 ]

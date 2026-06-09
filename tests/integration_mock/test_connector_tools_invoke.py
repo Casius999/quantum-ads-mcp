@@ -6,6 +6,8 @@ degradation) without going through FastMCP transport or any real SDK.
 
 import inspect
 
+from quantum_ads.connectors.bigquery import register_bigquery
+from quantum_ads.connectors.cm360 import register_cm360
 from quantum_ads.connectors.datamanager import register_datamanager
 from quantum_ads.connectors.dv360 import register_dv360
 from quantum_ads.connectors.ga4 import register_ga4
@@ -13,7 +15,10 @@ from quantum_ads.connectors.google_ads.read.connector import register_google_ads
 from quantum_ads.connectors.google_ads.write.connector import register_google_ads_write
 from quantum_ads.connectors.gtm import register_gtm
 from quantum_ads.connectors.merchant import register_merchant
+from quantum_ads.connectors.sa360 import register_sa360
 from quantum_ads.connectors.searchconsole import register_searchconsole
+from quantum_ads.connectors.trends import register_trends
+from quantum_ads.connectors.vertex import register_vertex
 from quantum_ads.connectors.youtube import register_youtube
 from quantum_ads.core.context import ServerContext
 from quantum_ads.core.registry.registry import ConnectorRegistry
@@ -31,6 +36,11 @@ REGISTRARS = [
     register_searchconsole,
     register_youtube,
     register_dv360,
+    register_cm360,
+    register_sa360,
+    register_bigquery,
+    register_vertex,
+    register_trends,
 ]
 
 
@@ -73,6 +83,14 @@ _BACKENDS: dict[str, object] = {
     "youtube.mutate": _fake_mutate,
     "dv360.api": _fake_read,
     "dv360.mutate": _fake_mutate,
+    "cm360.api": _fake_read,
+    "cm360.mutate": _fake_mutate,
+    "sa360.api": _fake_read,
+    "sa360.mutate": _fake_mutate,
+    "bigquery.api": _fake_read,
+    "bigquery.mutate": _fake_mutate,
+    "vertex.api": _fake_read,
+    "trends.api": _fake_read,
 }
 
 
