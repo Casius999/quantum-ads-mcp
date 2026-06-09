@@ -20,6 +20,25 @@ stack. Built for an AI agent to operate that stack at full granularity, safely.
 > OAuth 2.1 transport + multi-tenant secret store + observability (see Roadmap). Read-only by
 > default. Every "most X" claim here is meant to be verifiable.
 
+## Contents
+
+[Why](#why-this-exists) · [The 20 connectors](#the-20-connectors) · [Architecture](#architecture) · [Core](#core-shared-by-every-connector) · [Install](#install) · [Configure](#configure) · [Run](#run) · [Safety & honest claims](#safety--honest-claims) · [Roadmap](#roadmap-remaining-for-full-production-hardening)
+
+## Architecture
+
+```mermaid
+flowchart TD
+    Client["MCP client (AI agent)"] -->|"stdio &middot; or OAuth 2.1 HTTP (multi-tenant)"| Server["FastMCP server"]
+    Server --> Core["Sovereign core: auth &middot; version resilience &middot; GAQL/query engine &middot; safety spine (read-only default + Ed25519 signed audit) &middot; registry / meta-tool"]
+    Core --> C1["google_ads &middot; ga4 &middot; gtm &middot; merchant"]
+    Core --> C2["datamanager &middot; searchconsole &middot; youtube"]
+    Core --> C3["dv360 &middot; cm360 &middot; sa360"]
+    Core --> C4["bigquery &middot; adh &middot; looker &middot; meridian"]
+    Core --> C5["vertex &middot; trends &middot; gbp &middot; language &middot; workspace &middot; recaptcha"]
+    C1 -. "smoke-gated sdk.py" .-> G["Google APIs (Ads v24, GA4, GTM, Merchant, &hellip;)"]
+    C4 -. "smoke-gated sdk.py" .-> G
+```
+
 ## Why this exists
 
 Surveying June 2026: Google's official MCP is read-only (3 tools); the best open write-capable

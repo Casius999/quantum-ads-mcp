@@ -1,0 +1,55 @@
+name: Bug report
+description: Report a defect in Quantum ADS MCP
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. **Do not paste credentials or tokens.** Redact customer IDs if needed.
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit
+      placeholder: "v0.2.0 or commit SHA"
+    validations:
+      required: true
+  - type: dropdown
+    id: connector
+    attributes:
+      label: Affected connector (if any)
+      options:
+        - core
+        - google_ads
+        - ga4
+        - gtm
+        - merchant
+        - datamanager
+        - searchconsole
+        - youtube
+        - dv360
+        - cm360
+        - sa360
+        - bigquery
+        - adh
+        - vertex
+        - trends
+        - gbp
+        - looker
+        - meridian
+        - language
+        - workspace
+        - recaptcha
+        - other / not sure
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Expected vs actual behavior, with a minimal reproduction.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / traceback
+      description: Redact any secrets.
+      render: shell

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/Casius999/quantum-ads-mcp/security/advisories/new
+    about: Report security issues privately — do NOT open a public issue.
+  - name: Connector catalog & tooling
+    url: https://github.com/Casius999/quantum-ads-mcp/blob/main/CONNECTORS.md
+    about: Tool catalog, backend keys, and required SDK packages.

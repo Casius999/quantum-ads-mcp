@@ -1,0 +1,23 @@
+name: Feature request
+description: Suggest a capability, connector, or tool
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / use case
+      description: What are you trying to do that the server can't do today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: New tool, connector, or behavior. Note the Google API + scopes involved.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety
+      options:
+        - label: This involves a mutation and must go through the guarded WriteExecutor.
+        - label: This involves first-party / user data (consent + hashing apply).

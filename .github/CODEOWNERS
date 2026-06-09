@@ -1,0 +1,6 @@
+# Default owner for everything in the repo.
+* @Casius999
+
+# Core (security-sensitive): safety spine, auth, remote/OAuth.
+/src/quantum_ads/core/ @Casius999
+/.github/ @Casius999
