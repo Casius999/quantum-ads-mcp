@@ -65,6 +65,43 @@ DEFAULT_CONNECTORS: list[Connector] = [
     register_recaptcha,
 ]
 
+# Stable connector name -> its registrar(s), for env-based selection
+# (QUANTUM_ADS_CONNECTORS="google_ads,ga4"). Lets an operator mount a focused subset so the
+# AI client's tool list stays manageable instead of loading every connector at once.
+_CONNECTOR_BY_NAME: dict[str, list[Connector]] = {
+    "google_ads": [register_google_ads_read, register_google_ads_write],
+    "ga4": [register_ga4],
+    "gtm": [register_gtm],
+    "merchant": [register_merchant],
+    "datamanager": [register_datamanager],
+    "searchconsole": [register_searchconsole],
+    "youtube": [register_youtube],
+    "dv360": [register_dv360],
+    "cm360": [register_cm360],
+    "sa360": [register_sa360],
+    "bigquery": [register_bigquery],
+    "vertex": [register_vertex],
+    "trends": [register_trends],
+    "gbp": [register_gbp],
+    "looker": [register_looker],
+    "meridian": [register_meridian],
+    "language": [register_language],
+    "workspace": [register_workspace],
+    "recaptcha": [register_recaptcha],
+}
+
+
+def _selected_connectors(env: Mapping[str, str]) -> list[Connector]:
+    """Connectors to mount: all by default, or the QUANTUM_ADS_CONNECTORS comma-list subset."""
+    names = (env.get("QUANTUM_ADS_CONNECTORS") or "").strip()
+    if not names:
+        return DEFAULT_CONNECTORS
+    selected: list[Connector] = []
+    for name in (n.strip() for n in names.split(",")):
+        selected.extend(_CONNECTOR_BY_NAME.get(name, []))
+    return selected
+
+
 _SUNSET_WARN_DAYS = 30
 
 
@@ -169,6 +206,6 @@ def build_server(
 
     app: FastMCP = FastMCP("quantum-ads")
     _register_core(app, ctx)
-    for connector in connectors if connectors is not None else DEFAULT_CONNECTORS:
+    for connector in connectors if connectors is not None else _selected_connectors(env):
         connector(app, ctx)
     return AssembledServer(app=app, registry=registry)
