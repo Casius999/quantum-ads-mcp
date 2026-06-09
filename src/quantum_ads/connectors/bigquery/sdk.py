@@ -19,14 +19,16 @@ from typing import Any
 ReadFn = Callable[[str, dict[str, object]], list[dict[str, object]]]
 MutateFn = Callable[[str, list[dict[str, object]], bool], dict[str, object]]
 
-# OAuth scope for the BigQuery surface (read + DDL both ride the same scope; the read-only guard
-# lives in the SafetyMode spine, not in the token).
-_SCOPES = ["https://www.googleapis.com/auth/bigquery"]
+# OAuth scope for the BigQuery surface. cloud-platform is the umbrella scope every GCP OAuth grant
+# carries; requesting the narrow .../auth/bigquery scope on refresh fails (invalid_scope) when the
+# token was granted cloud-platform. The read-only guard lives in the SafetyMode spine, not the token.
+_SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
 
 
 def _oauth_credentials(creds: dict[str, object]) -> Any:
     from google.oauth2.credentials import Credentials
 
+    quota = creds.get("quota_project_id") or creds.get("project_id")
     return Credentials(
         token=None,
         refresh_token=str(creds["refresh_token"]),
@@ -34,6 +36,7 @@ def _oauth_credentials(creds: dict[str, object]) -> Any:
         client_secret=str(creds["client_secret"]),
         token_uri="https://oauth2.googleapis.com/token",
         scopes=_SCOPES,
+        quota_project_id=str(quota) if quota else None,
     )
 
 
@@ -42,7 +45,7 @@ def default_read_factory(creds: dict[str, object], version: str) -> ReadFn:
     from google.cloud import bigquery
 
     client = bigquery.Client(
-        project=str(creds.get("project_id")) or None,
+        project=(str(creds["project_id"]) if creds.get("project_id") else None),
         credentials=_oauth_credentials(creds),
     )
 
@@ -104,7 +107,7 @@ def default_mutate_factory(creds: dict[str, object], version: str) -> MutateFn:
     from google.cloud import bigquery
 
     client = bigquery.Client(
-        project=str(creds.get("project_id")) or None,
+        project=(str(creds["project_id"]) if creds.get("project_id") else None),
         credentials=_oauth_credentials(creds),
     )
 

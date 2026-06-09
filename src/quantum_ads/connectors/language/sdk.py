@@ -28,11 +28,22 @@ _TRANSLATE_LOCATION = "global"
 def language_read_factory(creds: dict[str, object], version: str) -> ReadFn:
     """Build the language ReadFn dispatching translate / detect / sentiment / entities ops."""
     from google.cloud import language_v2, translate_v3
+    from google.oauth2.credentials import Credentials
 
     project = str(creds["project"])
     parent = f"projects/{project}/locations/{_TRANSLATE_LOCATION}"
-    translate_client = translate_v3.TranslationServiceClient()
-    language_client = language_v2.LanguageServiceClient()
+    quota = creds.get("quota_project_id") or project
+    oauth = Credentials(
+        token=None,
+        refresh_token=str(creds["refresh_token"]),
+        client_id=str(creds["client_id"]),
+        client_secret=str(creds["client_secret"]),
+        token_uri="https://oauth2.googleapis.com/token",
+        scopes=["https://www.googleapis.com/auth/cloud-platform"],
+        quota_project_id=str(quota) if quota else None,
+    )
+    translate_client = translate_v3.TranslationServiceClient(credentials=oauth)
+    language_client = language_v2.LanguageServiceClient(credentials=oauth)
 
     def _document(text: str) -> dict[str, object]:
         return {"content": text, "type_": language_v2.Document.Type.PLAIN_TEXT}
