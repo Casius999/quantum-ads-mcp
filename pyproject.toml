@@ -1,6 +1,6 @@
 [project]
 name = "quantum-ads-mcp"
-version = "0.1.0"
+version = "0.2.0"
 description = "Sovereign Google marketing agency control plane over MCP (Google Ads v24, June 2026 SOTA)"
 readme = "README.md"
 requires-python = ">=3.11"

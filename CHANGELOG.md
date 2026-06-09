@@ -3,6 +3,30 @@
 All notable changes to Quantum ADS MCP are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/);
 SemVer.
 
+## [0.2.0] - 2026-06-09 — Full agency control plane (19 connectors)
+
+### Added
+- **Google Ads write plane** — guarded `ads.campaign.set_status`, `ads.budget.update`
+  (validate_only preview → two-step confirm token → Ed25519 signed audit), real SDK mutate glue.
+- **18 additional product connectors** (read + guarded write where supported): GA4, GTM
+  (+ server-side / Consent Mode v2), Merchant API, Data Manager API, Search Console, YouTube
+  (Data/Analytics/Reporting), DV360, CM360, SA360, BigQuery (cost-guarded), Vertex AI
+  (Gemini/Imagen/Veo), Trends, Business Profile, Looker, Meridian (MMM), Cloud Translation + NL,
+  Workspace (Sheets/Drive/Slides), reCAPTCHA Enterprise.
+- **Generalized core**: `WriteExecutor` moved to `core/safety` and reused by every connector;
+  multi-backend `ServerContext` (`ctx.backend(name)`); env-based connector selection
+  (`QUANTUM_ADS_CONNECTORS`).
+- **CONNECTORS.md** — full tool catalog, backend keys, and per-connector SDK packages.
+
+### Quality
+- mypy --strict clean across 187 source files; ruff clean; test coverage 99%.
+- Each connector's live SDK glue isolated in `sdk.py` (smoke-gated, mypy-ignored, coverage-omitted);
+  all tool logic + the safety flow unit/mock-tested without any live SDK.
+
+### Notes
+- Read-only by default. Remaining for full production hardening: remote OAuth 2.1 transport,
+  multi-tenant secret store, observability, and a live-API conformance suite.
+
 ## [0.1.0] - 2026-06-09 — SP0 (foundation + Google Ads read)
 
 ### Added
