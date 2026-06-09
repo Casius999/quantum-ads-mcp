@@ -51,13 +51,19 @@ module = [
   "google.ads.*", "google.protobuf.*", "google.api_core.*",
   "google.analytics.*", "google.cloud.*", "googleapiclient.*",
   "google_auth_oauthlib.*", "google.oauth2.*", "google.auth.*",
+  "google.shopping.*",
 ]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = "quantum_ads.connectors.google_ads.sdk"
-disallow_untyped_calls = false
-warn_return_any = false
+# Live-API SDK glue: untyped boundary, smoke-gated, excluded from strict type-checking.
+module = [
+  "quantum_ads.connectors.google_ads.sdk",
+  "quantum_ads.connectors.ga4.sdk",
+  "quantum_ads.connectors.gtm.sdk",
+  "quantum_ads.connectors.merchant.sdk",
+]
+ignore_errors = true
 
 [tool.pytest.ini_options]
 addopts = "-q"
@@ -65,4 +71,10 @@ markers = ["live: hits a real Google Ads account (requires creds, run manually)"
 
 [tool.coverage.run]
 # Omit the live-API SDK glue (covered by the gated live smoke test) and the stdio entrypoint.
-omit = ["*/connectors/google_ads/sdk.py", "*/__main__.py"]
+omit = [
+  "*/connectors/google_ads/sdk.py",
+  "*/connectors/ga4/sdk.py",
+  "*/connectors/gtm/sdk.py",
+  "*/connectors/merchant/sdk.py",
+  "*/__main__.py",
+]
