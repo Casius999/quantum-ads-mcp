@@ -11,14 +11,20 @@ from quantum_ads.connectors.cm360 import register_cm360
 from quantum_ads.connectors.datamanager import register_datamanager
 from quantum_ads.connectors.dv360 import register_dv360
 from quantum_ads.connectors.ga4 import register_ga4
+from quantum_ads.connectors.gbp import register_gbp
 from quantum_ads.connectors.google_ads.read.connector import register_google_ads_read
 from quantum_ads.connectors.google_ads.write.connector import register_google_ads_write
 from quantum_ads.connectors.gtm import register_gtm
+from quantum_ads.connectors.language import register_language
+from quantum_ads.connectors.looker import register_looker
 from quantum_ads.connectors.merchant import register_merchant
+from quantum_ads.connectors.meridian import register_meridian
+from quantum_ads.connectors.recaptcha import register_recaptcha
 from quantum_ads.connectors.sa360 import register_sa360
 from quantum_ads.connectors.searchconsole import register_searchconsole
 from quantum_ads.connectors.trends import register_trends
 from quantum_ads.connectors.vertex import register_vertex
+from quantum_ads.connectors.workspace import register_workspace
 from quantum_ads.connectors.youtube import register_youtube
 from quantum_ads.core.context import ServerContext
 from quantum_ads.core.registry.registry import ConnectorRegistry
@@ -41,6 +47,12 @@ REGISTRARS = [
     register_bigquery,
     register_vertex,
     register_trends,
+    register_gbp,
+    register_looker,
+    register_meridian,
+    register_language,
+    register_workspace,
+    register_recaptcha,
 ]
 
 
@@ -91,6 +103,17 @@ _BACKENDS: dict[str, object] = {
     "bigquery.mutate": _fake_mutate,
     "vertex.api": _fake_read,
     "trends.api": _fake_read,
+    "gbp.api": _fake_read,
+    "gbp.reviews": _fake_read,
+    "gbp.mutate": _fake_mutate,
+    "looker.api": _fake_read,
+    "looker.mutate": _fake_mutate,
+    "meridian.api": _fake_read,
+    "language.api": _fake_read,
+    "workspace.api": _fake_read,
+    "workspace.mutate": _fake_mutate,
+    "recaptcha.api": _fake_read,
+    "recaptcha.mutate": _fake_mutate,
 }
 
 

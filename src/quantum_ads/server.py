@@ -16,14 +16,20 @@ from .connectors.cm360 import register_cm360
 from .connectors.datamanager import register_datamanager
 from .connectors.dv360 import register_dv360
 from .connectors.ga4 import register_ga4
+from .connectors.gbp import register_gbp
 from .connectors.google_ads.read.connector import register_google_ads_read
 from .connectors.google_ads.write.connector import register_google_ads_write
 from .connectors.gtm import register_gtm
+from .connectors.language import register_language
+from .connectors.looker import register_looker
 from .connectors.merchant import register_merchant
+from .connectors.meridian import register_meridian
+from .connectors.recaptcha import register_recaptcha
 from .connectors.sa360 import register_sa360
 from .connectors.searchconsole import register_searchconsole
 from .connectors.trends import register_trends
 from .connectors.vertex import register_vertex
+from .connectors.workspace import register_workspace
 from .connectors.youtube import register_youtube
 from .core.auth.secret_store import EnvSecretStore
 from .core.context import MutateFactory, ServerContext, StreamFactory
@@ -51,6 +57,12 @@ DEFAULT_CONNECTORS: list[Connector] = [
     register_bigquery,
     register_vertex,
     register_trends,
+    register_gbp,
+    register_looker,
+    register_meridian,
+    register_language,
+    register_workspace,
+    register_recaptcha,
 ]
 
 _SUNSET_WARN_DAYS = 30

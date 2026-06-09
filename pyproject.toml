@@ -54,6 +54,7 @@ module = [
   "google.analytics.*", "google.cloud.*", "googleapiclient.*",
   "google_auth_oauthlib.*", "google.oauth2.*", "google.auth.*",
   "google.shopping.*", "vertexai.*", "pytrends.*",
+  "looker_sdk.*", "meridian.*",
 ]
 ignore_missing_imports = true
 
@@ -73,6 +74,12 @@ module = [
   "quantum_ads.connectors.bigquery.sdk",
   "quantum_ads.connectors.vertex.sdk",
   "quantum_ads.connectors.trends.sdk",
+  "quantum_ads.connectors.gbp.sdk",
+  "quantum_ads.connectors.looker.sdk",
+  "quantum_ads.connectors.meridian.sdk",
+  "quantum_ads.connectors.language.sdk",
+  "quantum_ads.connectors.workspace.sdk",
+  "quantum_ads.connectors.recaptcha.sdk",
 ]
 ignore_errors = true
 
@@ -96,5 +103,11 @@ omit = [
   "*/connectors/bigquery/sdk.py",
   "*/connectors/vertex/sdk.py",
   "*/connectors/trends/sdk.py",
+  "*/connectors/gbp/sdk.py",
+  "*/connectors/looker/sdk.py",
+  "*/connectors/meridian/sdk.py",
+  "*/connectors/language/sdk.py",
+  "*/connectors/workspace/sdk.py",
+  "*/connectors/recaptcha/sdk.py",
   "*/__main__.py",
 ]
