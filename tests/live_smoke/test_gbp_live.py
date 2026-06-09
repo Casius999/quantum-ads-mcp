@@ -27,10 +27,11 @@ def _creds() -> dict[str, object]:
     }
 
 
-def test_gbp_accounts_list_reachable_live():
+def test_gbp_accounts_list_reachable_live(reached_or_skip):
     from quantum_ads.connectors.gbp.sdk import read_factory
 
-    rows = read_factory(_creds(), "v1")("accounts.list", {})
+    read = read_factory(_creds(), "v1")
+    rows = reached_or_skip(lambda: read("accounts.list", {}))
     assert isinstance(rows, list)  # empty when the token manages no business listing
 
 

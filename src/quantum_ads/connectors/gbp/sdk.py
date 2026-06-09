@@ -154,15 +154,17 @@ def mutate_factory(creds: dict[str, object], version: str) -> MutateFn:
     business_info = build(
         "mybusinessbusinessinformation", "v1", credentials=credentials, cache_discovery=False
     )
-    mybusiness = build(
-        "mybusiness",
-        "v4",
-        credentials=credentials,
-        discoveryServiceUrl=_MYBUSINESS_V4_DISCOVERY,
-        cache_discovery=False,
-    )
 
     def _reply(op: dict[str, object]) -> dict[str, object]:
+        # The legacy v4 reviews host is allowlist-gated and its discovery is not always resolvable;
+        # build it lazily so location updates (v1) work even when the v4 host is unavailable.
+        mybusiness = build(
+            "mybusiness",
+            "v4",
+            credentials=credentials,
+            discoveryServiceUrl=_MYBUSINESS_V4_DISCOVERY,
+            cache_discovery=False,
+        )
         body: dict[str, object] = {"comment": str(op["comment"])}
         request = (
             mybusiness.accounts()

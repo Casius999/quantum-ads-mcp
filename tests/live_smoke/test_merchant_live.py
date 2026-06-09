@@ -38,13 +38,15 @@ def _read():
     return default_read_factory(_creds(), "v1")
 
 
-def test_merchant_accounts_get_live():
-    rows = _read()("accounts.get", {"merchant_id": _merchant_id()})
+def test_merchant_accounts_get_live(reached_or_skip):
+    read = _read()
+    rows = reached_or_skip(lambda: read("accounts.get", {"merchant_id": _merchant_id()}))
     assert rows and "name" in rows[0]
 
 
-def test_merchant_products_list_live():
-    rows = _read()("products.list", {"merchant_id": _merchant_id()})
+def test_merchant_products_list_live(reached_or_skip):
+    read = _read()
+    rows = reached_or_skip(lambda: read("products.list", {"merchant_id": _merchant_id()}))
     assert isinstance(rows, list)
 
 

@@ -60,7 +60,15 @@ def _service(creds: dict[str, object], version: str) -> Any:
     from googleapiclient.discovery import build
 
     credentials = _oauth_credentials(creds)
-    return build("adsdatahub", version or "v1", credentials=credentials, cache_discovery=False)
+    # adsdatahub v1 is not in google-api-python-client's bundled discovery set; fetch the live
+    # discovery document (static_discovery=False) instead of failing with UnknownApiNameOrVersion.
+    return build(
+        "adsdatahub",
+        version or "v1",
+        credentials=credentials,
+        cache_discovery=False,
+        static_discovery=False,
+    )
 
 
 def _date(value: str) -> dict[str, object]:

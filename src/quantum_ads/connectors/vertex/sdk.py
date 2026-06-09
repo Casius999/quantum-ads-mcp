@@ -32,7 +32,6 @@ def generative_read_factory(creds: dict[str, object], version: str) -> ReadFn:
     import vertexai
     from google.oauth2.credentials import Credentials
     from vertexai.preview.generative_models import GenerativeModel
-    from vertexai.preview.vision_models import ImageGenerationModel, VideoGenerationModel
 
     project = str(creds["project"])
     location = str(creds.get("location") or _DEFAULT_LOCATION)
@@ -57,6 +56,8 @@ def generative_read_factory(creds: dict[str, object], version: str) -> ReadFn:
         return [{"text": response.text}]
 
     def _imagen(params: dict[str, object]) -> list[dict[str, object]]:
+        from vertexai.preview.vision_models import ImageGenerationModel
+
         model = ImageGenerationModel.from_pretrained(_IMAGEN_MODEL)
         images = model.generate_images(
             prompt=str(params["prompt"]),
@@ -66,6 +67,8 @@ def generative_read_factory(creds: dict[str, object], version: str) -> ReadFn:
         return [{"image_index": i, "mime_type": img._mime_type} for i, img in enumerate(images)]
 
     def _veo(params: dict[str, object]) -> list[dict[str, object]]:
+        from vertexai.preview.vision_models import VideoGenerationModel
+
         model = VideoGenerationModel.from_pretrained(_VEO_MODEL)
         operation = model.generate_videos(
             prompt=str(params["prompt"]),

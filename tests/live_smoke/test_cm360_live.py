@@ -27,10 +27,11 @@ def _creds() -> dict[str, object]:
     }
 
 
-def test_cm360_user_profiles_reachable_live():
+def test_cm360_user_profiles_reachable_live(reached_or_skip):
     from quantum_ads.connectors.cm360.sdk import default_read_factory
 
-    rows = default_read_factory(_creds(), "v4")("userProfiles.list", {})
+    read = default_read_factory(_creds(), "v4")
+    rows = reached_or_skip(lambda: read("userProfiles.list", {}))
     assert isinstance(rows, list)  # empty when the token owns no CM360 profile
 
 

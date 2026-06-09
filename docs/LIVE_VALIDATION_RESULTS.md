@@ -7,8 +7,10 @@ mutated, no billable generation is invoked.
 
 **Last live run:** 32 passed · 6 skipped · 0 failed.
 **Discovery conformance:** 12/12 surfaces pass (account-free, token-free API-contract check).
-**Wired, runs on the next re-consent:** merchant, vertex, and the dv360/cm360/sa360/adh/gbp
-reachability suites.
+**Broad-token run (17 scopes granted, 8 further APIs enabled):** 0 failures. merchant, vertex, and
+the dv360/cm360/sa360/adh/gbp reachability suites all ran — every `validate_only` contract passes and
+every read either returns data or **skips as "reached the API, gated externally"** (no enterprise
+account / Merchant registration / Vertex model access / a default quota of 0) — never a code failure.
 
 Legend: ✅ live-green (real round-trip) · 🟢 contract-conformant + reachability-ready · 🟡 wired,
 pending a re-consent token · 🚫 blocked by an external prerequisite · ⚪ code-complete only.
@@ -30,8 +32,8 @@ pending a re-consent token · 🚫 blocked by an external prerequisite · ⚪ co
 | searchconsole | sites.list, sitemap submit `validate_only` | ✅ live-green | searchAnalytics + sitemaps.list skipped (token owns no Search Console property) |
 | trends | interest_over_time | ✅ live-green | pytrends is unofficial + rate-limited; trending_now skipped on endpoint drift |
 | recaptcha | keys.list, annotate `validate_only` | ✅ live-green | assessment.create needs a real site key + frontend token |
-| merchant | Merchant API products/accounts + insert `validate_only` | 🟡 wired, runs on re-consent | SDK now installed (clean resolve) + `quota_project_id` routed; owner holds the account. Needs `merchantapi` enabled. |
-| vertex | Gemini micro-generation (Imagen/Veo excluded) | 🟡 wired, runs on re-consent | OAuth + quota auth wired (was a broken implicit ADC). One **billable** Gemini Flash call (opt-in). |
+| merchant | products/accounts + insert `validate_only` | 🟢 reached · `validate_only` ✅ | reads return once the GCP project is **registered** with the Merchant account (one Merchant Center step) — then live-green |
+| vertex | Gemini micro-generation + OAuth/quota auth | 🟢 reached · auth ✅ | auth + quota wired (was broken ADC); the project exposes no accessible Gemini model (enable in Vertex AI Studio) — then live-green |
 | dv360 | advertisers/campaigns/lineItems + `validate_only` | 🟢 contract-conformant · reachability-ready | method surface verified vs live discovery; no no-account list (needs a partner id) |
 | cm360 | userProfiles/campaigns/placements/reports + `validate_only` | 🟢 contract-conformant · reachability-ready | `userProfiles.list` runs empty without a CM360 account |
 | sa360 | search + listAccessible + conversion `validate_only` | 🟢 contract-conformant · reachability-ready | `customers.listAccessible` runs empty without an SA360 account |
@@ -71,6 +73,14 @@ real APIs:
 10. **sa360** — `conversions.ingest` does not exist on the `searchads360` v0 Reporting API (it is
     read-only). SA360 conversion upload lives on the `doubleclicksearch` v2 API as
     `conversion.insert`; the mutate plane now targets that API. Found by discovery conformance.
+11. **vertex** — the top-level `from vertexai.preview.vision_models import VideoGenerationModel`
+    fails on the installed SDK (the class moved), crashing the whole factory even for the Gemini
+    text path. Imagen/Veo are now lazy-imported inside their handlers.
+12. **adh** — `build("adsdatahub", "v1")` raises `UnknownApiNameOrVersion` (adsdatahub is not in the
+    bundled discovery set); pass `static_discovery=False` to fetch the live discovery document.
+13. **gbp** — the mutate factory eagerly built the legacy `mybusiness` v4 client (dead discovery →
+    `UnknownApiNameOrVersion`), breaking the v1 location-update `validate_only`. The v4 client is now
+    built lazily, only when a review reply is actually issued.
 
 ## API-contract conformance (no account, no token, no cost)
 
