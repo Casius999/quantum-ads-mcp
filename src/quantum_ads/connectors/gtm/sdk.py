@@ -22,21 +22,25 @@ from typing import Any
 ReadFn = Callable[[str, dict[str, object]], list[dict[str, object]]]
 MutateFn = Callable[[str, list[dict[str, object]], bool], dict[str, object]]
 
-# OAuth scope for full Tag Manager management (read + edit + publish).
-TAGMANAGER_SCOPE = "https://www.googleapis.com/auth/tagmanager.edit.containers"
+# Reads ride the read-only scope; edit/publish rides the edit scope. Splitting them lets a
+# read-only token drive the read plane without an invalid_scope refresh failure.
+TAGMANAGER_READ_SCOPE = "https://www.googleapis.com/auth/tagmanager.readonly"
+TAGMANAGER_EDIT_SCOPE = "https://www.googleapis.com/auth/tagmanager.edit.containers"
 
 
-def _build_service(creds: dict[str, object]) -> Any:
+def _build_service(creds: dict[str, object], scopes: list[str]) -> Any:
     from google.oauth2.credentials import Credentials
     from googleapiclient.discovery import build
 
+    quota = creds.get("quota_project_id")
     credentials = Credentials(
         token=None,
         refresh_token=str(creds.get("refresh_token")),
         token_uri="https://oauth2.googleapis.com/token",
         client_id=str(creds.get("client_id")),
         client_secret=str(creds.get("client_secret")),
-        scopes=[TAGMANAGER_SCOPE],
+        scopes=scopes,
+        quota_project_id=str(quota) if quota else None,
     )
     return build("tagmanager", "v2", credentials=credentials, cache_discovery=False)
 
@@ -47,7 +51,7 @@ def _rows(response: dict[str, object], key: str) -> list[dict[str, object]]:
 
 
 def default_read_factory(creds: dict[str, object], version: str) -> ReadFn:
-    accounts: Any = _build_service(creds).accounts()
+    accounts: Any = _build_service(creds, [TAGMANAGER_READ_SCOPE]).accounts()
 
     def read(operation: str, params: dict[str, object]) -> list[dict[str, object]]:
         parent = str(params.get("parent", ""))
@@ -76,7 +80,7 @@ def default_read_factory(creds: dict[str, object], version: str) -> ReadFn:
 
 
 def default_mutate_factory(creds: dict[str, object], version: str) -> MutateFn:
-    accounts: Any = _build_service(creds).accounts()
+    accounts: Any = _build_service(creds, [TAGMANAGER_EDIT_SCOPE]).accounts()
 
     def _create_tag(parent: str, op: dict[str, object]) -> dict[str, object]:
         body: dict[str, object] = {"name": op["tag_name"], "type": op["tag_type"]}
