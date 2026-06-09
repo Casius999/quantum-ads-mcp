@@ -54,7 +54,5 @@ def test_language_entities_live():
 
 
 def test_language_batch_translate_live():
-    rows = _read()(
-        "batch_translate", {"texts": ["Hello", "Goodbye"], "target_language": "es"}
-    )
+    rows = _read()("batch_translate", {"texts": ["Hello", "Goodbye"], "target_language": "es"})
     assert len(rows) == 2

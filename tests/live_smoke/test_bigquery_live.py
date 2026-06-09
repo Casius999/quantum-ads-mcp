@@ -61,9 +61,7 @@ def test_bigquery_tables_list_live():
     datasets = read("datasets.list", {"project_id": _project()})
     if not datasets:
         pytest.skip("no dataset available to list tables")
-    out = read(
-        "tables.list", {"project_id": _project(), "dataset_id": datasets[0]["dataset_id"]}
-    )
+    out = read("tables.list", {"project_id": _project(), "dataset_id": datasets[0]["dataset_id"]})
     assert isinstance(out, list)
 
 
