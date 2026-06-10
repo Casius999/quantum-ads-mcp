@@ -37,7 +37,7 @@ def mmm_read_factory(creds: dict[str, object], version: str) -> ReadFn:
 
     def _fit(params: dict[str, object]) -> list[dict[str, object]]:
         config = dict(params["config"])  # type: ignore[arg-type]
-        loader = load.DataFrameInputDataLoader(dataset_ref=str(params["dataset_ref"]), **config)
+        loader = load.DataFrameDataLoader(dataset_ref=str(params["dataset_ref"]), **config)
         data = loader.load()
         mmm = model.Meridian(input_data=data, model_spec=spec.ModelSpec())
         mmm.sample_posterior()

@@ -46,7 +46,7 @@ def test_datamanager_read_tools_registered():
     assembled = _build()
     names = {t.name for t in assembled.registry.all_tools()}
     assert "datamanager.status" in names
-    assert "datamanager.destinations.list" in names
+    assert "datamanager.request_status" in names
 
 
 def test_datamanager_write_tools_registered():
@@ -61,7 +61,7 @@ def test_datamanager_read_tools_marked_read_only():
     assembled = _build()
     registry = assembled.registry
     assert registry.describe_tool("datamanager.status").read_only is True
-    assert registry.describe_tool("datamanager.destinations.list").read_only is True
+    assert registry.describe_tool("datamanager.request_status").read_only is True
 
 
 def test_datamanager_write_tools_marked_not_read_only():

@@ -20,3 +20,6 @@ build/
 # ruflo MCP local vector store (machine-local, never commit)
 ruvector.db
 *.db
+
+# isolated validation venvs
+.venv*

@@ -2,8 +2,8 @@
 
 Two tools:
   - ``datamanager.status``           -> dependency-free plane identity + operator contract.
-  - ``datamanager.destinations.list`` -> lists destinations via the optional ``datamanager.read``
-    ReadFn backend; degrades gracefully (structured BACKEND_NOT_CONFIGURED error) when unwired.
+  - ``datamanager.request_status`` -> retrieves an ingestion request's status via the optional
+    ``datamanager.read`` ReadFn backend; degrades gracefully (BACKEND_NOT_CONFIGURED) when unwired.
 """
 
 from __future__ import annotations
@@ -25,9 +25,9 @@ def register_datamanager_read(app: FastMCP, ctx: ServerContext) -> None:
     def datamanager_status() -> dict[str, object]:
         return status_tools.status()
 
-    def datamanager_destinations_list(account_id: str) -> dict[str, object]:
-        return status_tools.list_destinations(
-            account_id=account_id, backend=ctx.backend(BACKEND_KEY)
+    def datamanager_request_status(request_id: str) -> dict[str, object]:
+        return status_tools.get_request_status(
+            request_id=request_id, backend=ctx.backend(BACKEND_KEY)
         )
 
     tools: list[tuple[str, str, Callable[..., Any]]] = [
@@ -37,9 +37,9 @@ def register_datamanager_read(app: FastMCP, ctx: ServerContext) -> None:
             datamanager_status,
         ),
         (
-            "datamanager.destinations.list",
-            "List Data Manager destinations under an account (optional read backend).",
-            datamanager_destinations_list,
+            "datamanager.request_status",
+            "Retrieve a Data Manager ingestion request's status (optional read backend).",
+            datamanager_request_status,
         ),
     ]
     for name, description, fn in tools:

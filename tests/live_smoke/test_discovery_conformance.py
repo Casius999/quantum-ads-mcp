@@ -73,6 +73,16 @@ _SURFACES: dict[str, tuple[str, str, list[str]]] = {
             "adsdatahub.operations.get",
         ],
     ),
+    "datamanager": (
+        "datamanager",
+        "v1",
+        [
+            "datamanager.audienceMembers.ingest",
+            "datamanager.audienceMembers.remove",
+            "datamanager.events.ingest",
+            "datamanager.requestStatus.retrieve",
+        ],
+    ),
     "gtm": (
         "tagmanager",
         "v2",

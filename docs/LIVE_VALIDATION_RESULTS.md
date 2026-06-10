@@ -6,7 +6,7 @@ broad-scope OAuth token (since revoked). The suite lives under `tests/live_smoke
 mutated, no billable generation is invoked.
 
 **Last live run:** 32 passed · 6 skipped · 0 failed.
-**Discovery conformance:** 12/12 surfaces pass (account-free, token-free API-contract check).
+**Discovery conformance:** 13/13 surfaces pass (account-free, token-free API-contract check).
 **Broad-token run (17 scopes granted, 8 further APIs enabled):** 0 failures. merchant, vertex, and
 the dv360/cm360/sa360/adh/gbp reachability suites all ran — every `validate_only` contract passes and
 every read either returns data or **skips as "reached the API, gated externally"** (no enterprise
@@ -42,10 +42,10 @@ pending a re-consent token · 🚫 blocked by an external prerequisite · ⚪ co
 | sa360 | search + listAccessible + conversion `validate_only` | 🟢 contract-conformant · reachability-ready | `customers.listAccessible` runs empty without an SA360 account |
 | adh | customers/queries + create `validate_only` | 🟢 contract-conformant · reachability-ready | `customers.list` runs empty without an ADH account |
 | gbp | accounts/locations/performance + `validate_only` | 🟢 contract-conformant · reachability-ready | `accounts.list` runs empty for a personal account with no listing |
-| datamanager | audience/conversion uploads | ⚪ code-complete | needs the Data Manager grant + an Ads data partner |
+| datamanager | audienceMembers/events ingest + request_status | 🟢 contract-conformant | method surface verified vs live discovery (caught + fixed 2 fictional methods); needs the Data Manager grant to run live |
 | workspace | Admin SDK | 🚫 needs a Workspace org | a personal @gmail account cannot grant admin scopes |
 | looker | Looker instance | 🚫 needs a Looker instance | paid Looker (Google Cloud core) instance + API3 creds |
-| meridian | MMM library (local) | 🟡 isolated-venv validation | heavy TensorFlow/tfp-nightly stack; validate in a throwaway venv (not a shared extra) |
+| meridian | MMM library (local) | 🟢 library-surface validated | google-meridian installed in an isolated venv; the connector's imports/classes resolve (caught + fixed a fictional loader); a full MCMC fit is heavy + deferred |
 
 ## Bugs found by live testing (and fixed)
 
@@ -86,14 +86,24 @@ real APIs:
 13. **gbp** — the mutate factory eagerly built the legacy `mybusiness` v4 client (dead discovery →
     `UnknownApiNameOrVersion`), breaking the v1 location-update `validate_only`. The v4 client is now
     built lazily, only when a review reply is actually issued.
+14. **datamanager** — `destinations.list` is not a real datamanager v1 method (there is no
+    destinations resource). The read plane now targets `requestStatus.retrieve` (tool renamed to
+    `datamanager.request_status`). Found by discovery conformance.
+15. **datamanager** — conversion upload called a non-existent `conversions.ingest`; datamanager v1
+    ingests offline events via `events.ingest`. The mutate plane now targets that method.
+16. **meridian** — the connector imported a fictional `DataFrameInputDataLoader`; the real
+    `google-meridian` loader is `DataFrameDataLoader`. Found by the isolated-venv library check.
 
 ## API-contract conformance (no account, no token, no cost)
 
 `tests/live_smoke/test_discovery_conformance.py` validates every discovery-based connector's method
 surface against Google's actual API contract: it loads each API's discovery document — the one
 google-api-python-client bundles, i.e. exactly what the connector loads at runtime — and asserts that
-every method the connector calls exists. **12/12 surfaces pass** (dv360, cm360, sa360 reporting +
-conversions, adh, gtm, Search Console webmasters + URL inspection, youtube, and the three GBP hosts).
+every method the connector calls exists. **13/13 surfaces pass** (dv360, cm360, sa360 reporting +
+conversions, adh, datamanager, gtm, Search Console webmasters + URL inspection, youtube, and the
+three GBP hosts). A companion isolated-venv check (`tests/live_smoke/meridian_smoke.py`) does the
+same for the **meridian** library: it asserts the connector's `google-meridian` imports + classes
+all resolve.
 
 This is the layer that needs no enterprise account, token, or spend: it proves a connector targets
 real endpoints even where we cannot own the data. It is what caught both non-existent-endpoint bugs

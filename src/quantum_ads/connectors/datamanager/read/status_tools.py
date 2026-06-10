@@ -1,12 +1,12 @@
 """Read-side Data Manager tools: plane status + optional destinations listing.
 
 ``status`` is dependency-free — it always reports that this connector is the Data Manager upload
-plane (and why: the Google Ads API upload path is blocked since 2026-06-15). ``destinations.list``
+plane (and why: the Google Ads API upload path is blocked since 2026-06-15). ``request_status``
 talks to the optional ``datamanager.read`` ReadFn backend and degrades gracefully (structured
 ``BACKEND_NOT_CONFIGURED`` error) when that backend is not wired.
 
 The backend ReadFn signature is ``(operation, params) -> rows`` where operation is
-``"destinations.list"``.
+``"requestStatus.retrieve"``.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ from typing import cast
 # (operation, params) -> rows.
 ReadFn = Callable[[str, dict[str, object]], list[dict[str, object]]]
 
-OP_DESTINATIONS_LIST = "destinations.list"
+OP_REQUEST_STATUS = "requestStatus.retrieve"
 
 _PLANE_NOTE = (
     "First-party data ingestion via the Google Data Manager API (Customer Match audience members "
@@ -36,11 +36,11 @@ def status() -> dict[str, object]:
     return {"plane": "data-manager", "note": _PLANE_NOTE}
 
 
-def list_destinations(*, account_id: str, backend: object | None) -> dict[str, object]:
-    """Tool: list Data Manager destinations under an account (optional read backend)."""
+def get_request_status(*, request_id: str, backend: object | None) -> dict[str, object]:
+    """Tool: retrieve a Data Manager ingestion request's status (optional read backend)."""
     if backend is None:
         return dict(_BACKEND_NOT_CONFIGURED)
     read = cast(ReadFn, backend)
-    params: dict[str, object] = {"account_id": account_id}
-    rows = read(OP_DESTINATIONS_LIST, params)
+    params: dict[str, object] = {"request_id": request_id}
+    rows = read(OP_REQUEST_STATUS, params)
     return {"rows": rows, "row_count": len(rows)}

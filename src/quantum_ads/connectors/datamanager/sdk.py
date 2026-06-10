@@ -48,15 +48,13 @@ def _service(creds: dict[str, object], version: str) -> Any:
 
 
 def default_read_factory(creds: dict[str, object], version: str) -> ReadFn:
-    """Build the Data Manager ReadFn dispatching destinations.list over the discovery client."""
+    """Build the Data Manager ReadFn dispatching requestStatus.retrieve over the discovery client."""
     service = _service(creds, version)
 
     def read(operation: str, params: dict[str, object]) -> list[dict[str, object]]:
-        if operation == "destinations.list":
-            account = str(params["account_id"])
-            response = service.destinations().list(parent=account).execute()
-            destinations = response.get("destinations", [])
-            return [dict(d) for d in destinations]
+        if operation == "requestStatus.retrieve":
+            response = service.requestStatus().retrieve(name=str(params["request_id"])).execute()
+            return [dict(response)]
         raise ValueError(f"unsupported datamanager read operation: {operation!r}")
 
     return read
@@ -92,11 +90,13 @@ def default_mutate_factory(creds: dict[str, object], version: str) -> MutateFn:
         return result
 
     def _upload_conversions(op: dict[str, object]) -> dict[str, object]:
+        # Conversions/offline events ride the Data Manager events.ingest endpoint — datamanager v1
+        # has no `conversions` resource; the destination travels in the request body.
         body: dict[str, object] = {
-            "conversions": op["conversions"],
+            "events": op["conversions"],
             "consent": op["consent"],
         }
-        request = service.conversions().ingest(destination=str(op["destination_id"]), body=body)
+        request = service.events().ingest(body=body)
         result: dict[str, object] = request.execute()
         return result
 
