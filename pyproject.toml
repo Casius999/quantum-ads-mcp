@@ -20,7 +20,7 @@ dev = [
   "pytest-cov>=5",
   "pytest-mock>=3.14",
   "mypy>=1.10",
-  "ruff>=0.5",
+  "ruff>=0.15.17",
 ]
 # Per-connector live SDKs. Only needed to run a connector's live backend (smoke-gated
 # `live` tests); the core + mocked suite need none of these. Install with: uv sync --extra connectors
