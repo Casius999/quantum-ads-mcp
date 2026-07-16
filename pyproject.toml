@@ -8,7 +8,7 @@ license = { text = "MIT" }
 authors = [{ name = "Julien Compain" }]
 dependencies = [
   "fastmcp>=2.9",
-  "mcp>=1.9",
+  "mcp>=1.28.1",
   "google-ads>=27",
   "pydantic>=2.7,<3",
   "cryptography>=42",
