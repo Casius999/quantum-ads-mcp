@@ -1,12 +1,12 @@
 from quantum_ads.connectors.google_ads.read.fields import (
     FieldCatalog,
     field_deltas_2026,
-    list_v24_new_views,
+    list_new_views,
 )
 
 
 def test_new_views_include_2026_additions():
-    views = list_v24_new_views()
+    views = list_new_views()
     assert "per_store_view" in views
     assert "matched_location_interest_view" in views
 
@@ -17,6 +17,7 @@ def test_field_deltas_has_all_sections():
         "new_views",
         "new_metric_families",
         "new_segment_families",
+        "new_resources_v25_v26",
         "removed_fields",
     }
 

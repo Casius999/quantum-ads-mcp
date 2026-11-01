@@ -10,9 +10,10 @@ from fastmcp import FastMCP
 from ....core.context import ServerContext
 from ....core.mcp.register import add_tool
 from ....core.registry.registry import Capability, ToolSpec
+from ..catalogs.version_delta import compute_version_delta
 from . import report_tools
 from .change_history import change_history
-from .fields import field_deltas_2026, list_v24_new_views
+from .fields import field_deltas_2026, list_new_views
 from .gaql_tools import run_gaql
 
 
@@ -62,7 +63,12 @@ def register_google_ads_read(app: FastMCP, ctx: ServerContext) -> None:
         return field_deltas_2026()
 
     def ads_fields_new_views() -> dict[str, object]:
-        return {"new_views_2026": list_v24_new_views()}
+        return {"new_views_2026": list_new_views()}
+
+    def ads_api_version_delta(
+        from_version: str = "v24", to_version: str = ctx.version
+    ) -> dict[str, object]:
+        return compute_version_delta(from_version, to_version)
 
     tools: list[tuple[str, str, Callable[..., Any]]] = [
         ("ads.gaql.query", "Run an arbitrary read-only GAQL query.", ads_gaql_query),
@@ -80,8 +86,18 @@ def register_google_ads_read(app: FastMCP, ctx: ServerContext) -> None:
             "Change history (audit=change_event, delta=change_status).",
             ads_change_history,
         ),
-        ("ads.fields.deltas", "Curated v24 2026 field/view deltas.", ads_fields_deltas),
+        (
+            "ads.fields.deltas",
+            "Curated 2026 field/view/resource deltas (v22 to v26).",
+            ads_fields_deltas,
+        ),
         ("ads.fields.new_views", "New 2026 reporting views.", ads_fields_new_views),
+        (
+            "ads.api.version_delta",
+            "Exact resources/services/enums added or removed between two API versions "
+            "(computed from the installed SDK; plan an upgrade without a token).",
+            ads_api_version_delta,
+        ),
     ]
     for name, description, fn in tools:
         add_tool(app, name, description, fn)

@@ -38,7 +38,7 @@ from .core.mcp.register import add_tool
 from .core.registry.registry import Capability, ConnectorRegistry, ToolSpec
 from .core.safety.audit import AuditLedger
 from .core.safety.mode import SafetyMode
-from .core.versioning.version_manager import VersionManager
+from .core.versioning.version_manager import DEFAULT_API_VERSION, VersionManager
 
 Connector = Callable[[FastMCP, ServerContext], None]
 
@@ -191,7 +191,7 @@ def build_server(
     backends: dict[str, object] | None = None,
 ) -> AssembledServer:
     creds = EnvSecretStore(env).get("default").to_google_ads_dict()
-    version = env.get("GOOGLE_ADS_API_VERSION") or "v24"
+    version = env.get("GOOGLE_ADS_API_VERSION") or DEFAULT_API_VERSION
     read_only = (env.get("QUANTUM_ADS_READ_ONLY") or "true").lower() != "false"
 
     registry = ConnectorRegistry()

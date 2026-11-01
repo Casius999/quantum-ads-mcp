@@ -9,6 +9,8 @@ import os
 
 import pytest
 
+from quantum_ads.core.versioning.version_manager import DEFAULT_API_VERSION
+
 pytestmark = pytest.mark.live
 
 _REQUIRED = (
@@ -31,7 +33,7 @@ def _creds() -> dict[str, object]:
 def _client(creds: dict[str, object]):
     from google.ads.googleads.client import GoogleAdsClient
 
-    return GoogleAdsClient.load_from_dict(creds, version="v24")
+    return GoogleAdsClient.load_from_dict(creds, version=DEFAULT_API_VERSION)
 
 
 def _first_customer_id(client) -> str:
@@ -58,7 +60,7 @@ def test_gaql_customer_read_live():
     out = run_gaql(
         customer_id=cid,
         query="SELECT customer.id FROM customer",
-        stream=default_stream_factory(creds, "v24"),
+        stream=default_stream_factory(creds, DEFAULT_API_VERSION),
     )
     assert "error" not in out, out.get("error")
     assert out["row_count"] >= 1
@@ -76,7 +78,7 @@ def test_gaql_campaign_read_live():
             "SELECT campaign.id, campaign.name, metrics.clicks "
             "FROM campaign WHERE segments.date DURING LAST_7_DAYS"
         ),
-        stream=default_stream_factory(creds, "v24"),
+        stream=default_stream_factory(creds, DEFAULT_API_VERSION),
     )
     assert "error" not in out, out.get("error")
     assert "rows" in out  # may be empty if the account has no campaigns
@@ -95,7 +97,7 @@ def test_budget_update_validate_only_live():
     rows = run_report(
         cid,
         "SELECT campaign_budget.id, campaign_budget.amount_micros FROM campaign_budget LIMIT 1",
-        stream=default_stream_factory(creds, "v24"),
+        stream=default_stream_factory(creds, DEFAULT_API_VERSION),
     )
     if not rows:
         pytest.skip("no campaign budget available to validate against")
@@ -107,5 +109,7 @@ def test_budget_update_validate_only_live():
             "amount_micros": int(rows[0]["campaign_budget.amount_micros"]),
         }
     ]
-    result = default_mutate_factory(creds, "v24")(cid, ops, True)  # validate_only -> never applied
+    result = default_mutate_factory(creds, DEFAULT_API_VERSION)(
+        cid, ops, True
+    )  # validate_only -> never applied
     assert result is not None
