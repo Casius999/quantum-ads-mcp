@@ -1,5 +1,8 @@
 """Mint a broad-scope Google OAuth refresh token for live connector validation.
 
+With ``--ads``: mint only the Google Ads refresh token, for the GOOGLE_ADS_* client (the GCP
+project that holds Google Ads API access), activating the GOOGLE_ADS_* lines in .env.
+
 Opens your browser ONCE for consent, then writes GOOGLE_OAUTH_* to the gitignored .env.
 Reuses the OAuth client_id/secret already in .env (GOOGLE_ADS_CLIENT_ID/SECRET or
 GOOGLE_OAUTH_CLIENT_ID/SECRET). This is the one step only you can do (a human "Allow" click).
@@ -81,14 +84,43 @@ def _write_env(client_id: str, client_secret: str, refresh_token: str) -> None:
     env.write_text("\n".join(keep) + "\n", encoding="utf-8")
 
 
-def main() -> None:
-    _load_env()
-    from google_auth_oauthlib.flow import InstalledAppFlow
+ADS_SCOPES = ["https://www.googleapis.com/auth/adwords"]
+_ADS_KEYS = (
+    "GOOGLE_ADS_DEVELOPER_TOKEN",
+    "GOOGLE_ADS_CLIENT_ID",
+    "GOOGLE_ADS_CLIENT_SECRET",
+    "GOOGLE_ADS_LOGIN_CUSTOMER_ID",
+)
 
-    cid = os.environ.get("GOOGLE_OAUTH_CLIENT_ID") or os.environ.get("GOOGLE_ADS_CLIENT_ID")
-    sec = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET") or os.environ.get("GOOGLE_ADS_CLIENT_SECRET")
-    if not (cid and sec):
-        sys.exit("Set GOOGLE_ADS_CLIENT_ID and GOOGLE_ADS_CLIENT_SECRET in .env first.")
+
+def _ads_values() -> dict[str, str]:
+    """GOOGLE_ADS_* values from .env, including lines left commented out."""
+    values: dict[str, str] = {}
+    env = _ROOT / ".env"
+    for raw in env.read_text(encoding="utf-8").splitlines() if env.exists() else []:
+        body = raw.strip().lstrip("#").strip()
+        key, sep, value = body.partition("=")
+        if sep and key.strip() in _ADS_KEYS:
+            values[key.strip()] = value.strip().strip('"').strip("'")
+    return values
+
+
+def _write_ads_env(values: dict[str, str], refresh_token: str) -> None:
+    """Activate the GOOGLE_ADS_* lines and set GOOGLE_ADS_REFRESH_TOKEN; leave everything else."""
+    env = _ROOT / ".env"
+    managed = (*_ADS_KEYS, "GOOGLE_ADS_REFRESH_TOKEN")
+    keep = [
+        ln
+        for ln in env.read_text(encoding="utf-8").splitlines()
+        if ln.strip().lstrip("#").strip().partition("=")[0].strip() not in managed
+    ]
+    keep += [f"{k}={values[k]}" for k in _ADS_KEYS if values.get(k)]
+    keep.append(f"GOOGLE_ADS_REFRESH_TOKEN={refresh_token}")
+    env.write_text("\n".join(keep) + "\n", encoding="utf-8")
+
+
+def _flow(cid: str, sec: str, scopes: list[str]):  # type: ignore[no-untyped-def]
+    from google_auth_oauthlib.flow import InstalledAppFlow
 
     config = {
         "installed": {
@@ -99,7 +131,34 @@ def main() -> None:
             "redirect_uris": ["http://localhost:8765/"],
         }
     }
-    flow = InstalledAppFlow.from_client_config(config, scopes=SCOPES)
+    return InstalledAppFlow.from_client_config(config, scopes=scopes)
+
+
+def main_ads() -> None:
+    """--ads: refresh token for the Google Ads client whose GCP project holds API access."""
+    values = _ads_values()
+    if not (values.get("GOOGLE_ADS_CLIENT_ID") and values.get("GOOGLE_ADS_CLIENT_SECRET")):
+        sys.exit("GOOGLE_ADS_CLIENT_ID / GOOGLE_ADS_CLIENT_SECRET not found in .env.")
+    flow = _flow(values["GOOGLE_ADS_CLIENT_ID"], values["GOOGLE_ADS_CLIENT_SECRET"], ADS_SCOPES)
+    creds = flow.run_local_server(port=8765, access_type="offline", prompt="consent")
+    if not creds.refresh_token:
+        sys.exit("No refresh token returned. Revoke the prior grant and retry.")
+    _write_ads_env(values, str(creds.refresh_token))
+    print("OK — GOOGLE_ADS_* active in .env (gitignored); GOOGLE_OAUTH_* untouched.")
+
+
+def main() -> None:
+    if "--ads" in sys.argv[1:]:
+        main_ads()
+        return
+    _load_env()
+
+    cid = os.environ.get("GOOGLE_OAUTH_CLIENT_ID") or os.environ.get("GOOGLE_ADS_CLIENT_ID")
+    sec = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET") or os.environ.get("GOOGLE_ADS_CLIENT_SECRET")
+    if not (cid and sec):
+        sys.exit("Set GOOGLE_ADS_CLIENT_ID and GOOGLE_ADS_CLIENT_SECRET in .env first.")
+
+    flow = _flow(cid, sec, SCOPES)
     creds = flow.run_local_server(port=8765, access_type="offline", prompt="consent")
     if not creds.refresh_token:
         sys.exit("No refresh token returned. Revoke the prior grant and retry (prompt=consent).")
