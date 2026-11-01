@@ -3,6 +3,25 @@
 All notable changes to Quantum ADS MCP are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/);
 SemVer.
 
+## [0.5.0](https://github.com/Casius999/quantum-ads-mcp/compare/v0.4.0...v0.5.0) (2026-11-01)
+
+
+### Features
+
+* **audit:** anchor the audit chain head in Bitcoin via OpenTimestamps ([69fcac7](https://github.com/Casius999/quantum-ads-mcp/commit/69fcac7e9377198f1d36cadfe7ef65f6b27df38c))
+* **observability:** structured call logs, health counters and OpenTelemetry tracing ([95425d2](https://github.com/Casius999/quantum-ads-mcp/commit/95425d266a433916f3e7a4e6a40c6b7ccb1785dd))
+* **remote:** load the tenant credential map from Google Secret Manager ([5d13f04](https://github.com/Casius999/quantum-ads-mcp/commit/5d13f0492e2c7b52f496d5e414f634515230027d))
+
+
+### Bug Fixes
+
+* **trends:** serve trending_now from the public Trending-now RSS feed ([1fe580c](https://github.com/Casius999/quantum-ads-mcp/commit/1fe580ce882f08276e0809f280013d1e63d149fe))
+
+
+### Documentation
+
+* observability, audit anchoring, Secret Manager tenants, hardening results ([9131a3c](https://github.com/Casius999/quantum-ads-mcp/commit/9131a3c2394e2a9091cc766408cd8ac86da81e10))
+
 ## [0.4.0](https://github.com/Casius999/quantum-ads-mcp/compare/v0.3.1...v0.4.0) (2026-11-01)
 
 
