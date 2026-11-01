@@ -4,10 +4,13 @@
 supports mutation) **guarded write** tools — write tools take a `confirm` arg and run
 `validate_only` preview → two-step confirm → signed audit via the core `WriteExecutor`.
 
-Each connector reaches its API through a named **backend** (`ctx.backend("<key>")`). Backends are
-wired at server assembly; until wired, a tool degrades to `{"error": {"code":
-"BACKEND_NOT_CONFIGURED", ...}}`. The live SDK glue lives in each connector's `sdk.py`
-(smoke-gated, not unit-tested). Enable a subset with `QUANTUM_ADS_CONNECTORS`.
+Each connector reaches its API through a named **backend** (`ctx.backend("<key>")`). The stdio
+entrypoint wires every backend whose credentials resolve from the environment
+(`src/quantum_ads/backends.py`: one map of backend key → `sdk.py` factory, enforced complete by
+`tests/unit/test_backends.py`). Backends are lazy — built and authenticated on first call — and an
+unwired one degrades to `{"error": {"code": "BACKEND_NOT_CONFIGURED", ...}}`. The live SDK glue
+lives in each connector's `sdk.py` (smoke-gated, not unit-tested). Enable a subset with
+`QUANTUM_ADS_CONNECTORS`.
 
 | Connector | Key tools | Backend keys | Live SDK package |
 |-----------|-----------|--------------|------------------|

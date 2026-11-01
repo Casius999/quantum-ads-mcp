@@ -1,1 +1,1 @@
-"""Google Ads connector (read in SP0; write in SP1+)."""
+"""Google Ads connector: GAQL reads + guarded writes (status, budget)."""
