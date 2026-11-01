@@ -74,15 +74,23 @@ class TenantDirectory:
     @classmethod
     def from_file(cls, path: Path, builder: BackendBuilder) -> TenantDirectory:
         """Load ``{"tenants": {"<id>": {"GOOGLE_...": "..."}}}`` (the same variable names as .env)."""
-        raw = json.loads(path.read_text(encoding="utf-8"))
+        return cls.from_json(path.read_text(encoding="utf-8"), builder, source=str(path))
+
+    @classmethod
+    def from_json(cls, text: str, builder: BackendBuilder, *, source: str) -> TenantDirectory:
+        """Parse and validate the tenant map; ``source`` names the origin in error messages."""
+        try:
+            raw = json.loads(text)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"{source}: tenants map is not valid JSON ({exc.msg})") from exc
         tenants = raw.get("tenants") if isinstance(raw, dict) else None
         if not isinstance(tenants, dict):
-            raise ValueError(f"{path}: expected an object with a 'tenants' mapping")
+            raise ValueError(f"{source}: expected an object with a 'tenants' mapping")
         for tenant_id, env in tenants.items():
             if not isinstance(env, dict) or not all(
                 isinstance(k, str) and isinstance(v, str) for k, v in env.items()
             ):
-                raise ValueError(f"{path}: tenant {tenant_id!r} must map variable names to strings")
+                raise ValueError(f"{source}: tenant {tenant_id!r} must map names to strings")
         return cls(tenants, builder)
 
     def tenants(self) -> list[str]:

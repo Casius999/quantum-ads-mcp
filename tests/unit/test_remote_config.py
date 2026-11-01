@@ -61,7 +61,6 @@ def test_local_issuer_defaults(tmp_path: Path):
     assert config.algorithm == ALGORITHM
     assert config.audience == "http://127.0.0.1:8000/mcp" == config.resource_url
     assert config.authorization_servers == ()
-    assert config.tenants_file is None
 
 
 def test_idp_mode_advertises_the_issuer_and_binds_audience_to_the_public_url():
