@@ -12,16 +12,11 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
-    # 3.15 is tracked but non-blocking until PyYAML (via google-ads) ships cp315 wheels.
-    continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12", "3.13", "3.14"]
-        experimental: [false]
-        include:
-          - python-version: "3.15"
-            experimental: true
+        # 3.15 builds PyYAML (via google-ads) from source on Linux: no cp315 wheel exists yet.
+        python-version: ["3.11", "3.12", "3.13", "3.14", "3.15"]
     steps:
       - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
