@@ -3,6 +3,20 @@
 All notable changes to Quantum ADS MCP are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/);
 SemVer.
 
+## [0.4.0](https://github.com/Casius999/quantum-ads-mcp/compare/v0.3.1...v0.4.0) (2026-11-01)
+
+
+### Features
+
+* **remote:** OAuth 2.1 protected multi-tenant Streamable HTTP transport ([72822cb](https://github.com/Casius999/quantum-ads-mcp/commit/72822cb877ae70e0b78b00a32bb8a5273a9ce96e))
+* **scripts:** mint an Ads-only refresh token for the approved Cloud project ([1dcc50f](https://github.com/Casius999/quantum-ads-mcp/commit/1dcc50f71576c5c71887216aa8c227e1edca6c92))
+* **video:** free text-to-video connector over Hugging Face ZeroGPU Spaces ([5e7de19](https://github.com/Casius999/quantum-ads-mcp/commit/5e7de19820b78ad657933fd9ab1be76e8198150e))
+
+
+### Documentation
+
+* remote OAuth 2.1 serving, free video, Google Ads v26 live results ([ef3d5ee](https://github.com/Casius999/quantum-ads-mcp/commit/ef3d5eee9e8ccb1ccdc01e31e5eb2e3becdff77e))
+
 ## [0.3.1](https://github.com/Casius999/quantum-ads-mcp/compare/v0.3.0...v0.3.1) (2026-11-01)
 
 
