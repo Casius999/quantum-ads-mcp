@@ -12,6 +12,7 @@ construction and token refresh happen on the first tool call, not at startup.
 | OAuth + GCP project | the above + `GOOGLE_CLOUD_PROJECT` | bigquery, vertex, language, recaptcha |
 | Looker API3 | `LOOKERSDK_{BASE_URL,CLIENT_ID,CLIENT_SECRET}` | looker |
 | none | — | trends, meridian (local library) |
+| optional `HF_TOKEN` | free Hugging Face account token (~5 min/day GPU vs ~2 anonymous) | video (free text-to-video) |
 
 When `GOOGLE_CLOUD_PROJECT` is set it is also sent as the quota/billing project
 (`x-goog-user-project`) by the OAuth connectors. `GOOGLE_VERTEX_LOCATION` overrides the Vertex
@@ -38,6 +39,31 @@ single-tenant from the environment.
 - Tokens never reach the LLM and are never logged (credential objects have a redacted repr).
 - If a credential is ever committed, rotate it (developer token, OAuth client secret, refresh
   token) and purge history — deletion alone does not undo exposure.
+
+## Remote serving (Streamable HTTP + OAuth 2.1, multi-tenant)
+`quantum-ads-mcp serve --transport http` turns the server into an OAuth 2.1 resource server.
+
+| Variable | Meaning |
+|---|---|
+| `QUANTUM_ADS_OAUTH_JWKS_URI` + `QUANTUM_ADS_OAUTH_ISSUER` | verify tokens from your identity provider (default alg RS256; `QUANTUM_ADS_OAUTH_ALGORITHM` to change) |
+| `QUANTUM_ADS_OAUTH_PUBLIC_KEY_FILE` | or verify tokens minted by the built-in Ed25519 issuer (`keygen` / `token`) |
+| `QUANTUM_ADS_PUBLIC_URL`, `QUANTUM_ADS_HTTP_PATH` | public base URL + path (default `/mcp`); the token `aud` must be `<url><path>` unless `QUANTUM_ADS_OAUTH_AUDIENCE` is set |
+| `QUANTUM_ADS_OAUTH_AUTHORIZATION_SERVERS` | authorization servers advertised in RFC 9728 metadata (default: the issuer, IdP mode only) |
+| `QUANTUM_ADS_TENANTS_FILE` | `{"tenants": {"<id>": {<same GOOGLE_* variables as .env>}}}`; absent = single tenant `default` on the operator env |
+| `QUANTUM_ADS_TENANT_CLAIM` | token claim naming the tenant (default `tenant`) |
+| `QUANTUM_ADS_HTTP_HOST` / `_PORT`, `QUANTUM_ADS_ALLOWED_HOSTS` / `_ORIGINS` | bind address (default 127.0.0.1:8000) and Host/Origin allow-lists behind a proxy |
+| `QUANTUM_ADS_RATE_LIMIT_RPS` | per-tenant token-bucket rate (default 10/s) |
+
+- Scopes: `ads:read` is required for any call; `ads:write` is additionally required for guarded
+  writes (and `QUANTUM_ADS_READ_ONLY=false` must still be set — the server flag only narrows).
+- Fail closed: no verification configured → the server refuses to start. Missing, forged,
+  expired or wrong-audience tokens get `401` with a `WWW-Authenticate: Bearer` challenge.
+- Isolation: each tool call runs as the token's tenant — its own connector backends, Google Ads
+  client, write permission and audit actor (`tenant:subject`). An unknown tenant is refused; a
+  tenant never falls back to the operator's credentials.
+- Local issuer: `quantum-ads-mcp keygen` (Ed25519 key pair under `~/.quantum-ads/issuer`, private
+  key 0600, never overwritten) and `quantum-ads-mcp token --tenant acme --scope "ads:read"
+  --ttl 3600` (alg `Ed25519`, RFC 9864; `iss`, `aud`, `exp`, `jti`, `tenant`, `scope`).
 
 ## Guardrails
 - **Read-only by default:** `QUANTUM_ADS_READ_ONLY=true` refuses every write tool.
