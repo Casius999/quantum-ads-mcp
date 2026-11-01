@@ -11,7 +11,7 @@ wired at server assembly; until wired, a tool degrades to `{"error": {"code":
 
 | Connector | Key tools | Backend keys | Live SDK package |
 |-----------|-----------|--------------|------------------|
-| **google_ads** | `ads.gaql.query`, `ads.report.{campaign,search_terms,pmax_asset_groups,ai_max,conversions}`, `ads.change_history`, `ads.fields.*`, `ads.campaign.set_status`, `ads.budget.update` | `stream_factory`, `mutate_factory` | `google-ads` (31) |
+| **google_ads** | `ads.gaql.query`, `ads.report.{campaign,search_terms,pmax_asset_groups,ai_max,conversions}`, `ads.change_history`, `ads.fields.*`, `ads.api.version_delta`, `ads.campaign.set_status`, `ads.budget.update` | `stream_factory`, `mutate_factory` | `google-ads` (35, API v26) |
 | **ga4** | `ga4.report`, `ga4.realtime`, `ga4.admin.list_properties/list_data_streams/list_key_events`, `ga4.admin.create_key_event/create_audience` | `ga4.data`, `ga4.admin`, `ga4.admin.mutate` | `google-analytics-data`, `google-analytics-admin` |
 | **gtm** | `gtm.list_{accounts,containers,workspaces,tags,triggers,variables,versions}`, `gtm.create_tag`, `gtm.update_tag`, `gtm.create_version`, `gtm.publish_version` | `gtm.api`, `gtm.mutate` | `google-api-python-client` (tagmanager v2) |
 | **merchant** | `merchant.products.list`, `merchant.product.get`, `merchant.product_statuses.list`, `merchant.accounts.get`, `merchant.product.insert/update/delete` | `merchant.api`, `merchant.mutate` | `google-shopping-merchant-products/-accounts` |
@@ -23,7 +23,7 @@ wired at server assembly; until wired, a tool degrades to `{"error": {"code":
 | **sa360** | `sa360.search`, `sa360.customers.list_accessible`, `sa360.report.campaign/ad_group`, `sa360.conversion.upload` | `sa360.api`, `sa360.mutate` | `google-api-python-client` (searchads360 v0) |
 | **bigquery** | `bigquery.datasets.list`, `bigquery.tables.list`, `bigquery.query.dry_run` (cost estimate), `bigquery.query.run` (max_bytes_billed ceiling), `bigquery.dataset.create`, `bigquery.table.create` | `bigquery.api`, `bigquery.mutate` | `google-cloud-bigquery` |
 | **adh** | `adh.customers.list`, `adh.queries.list`, `adh.query.start`, `adh.jobs.get`, `adh.query.create` (privacy-safe aggregated SQL) | `adh.api`, `adh.mutate` | `google-api-python-client` (adsdatahub v1) |
-| **vertex** | `vertex.gemini.generate`, `vertex.imagen.generate`, `vertex.veo.generate`, `vertex.gemini.generate_ad_copy` | `vertex.api` | `google-cloud-aiplatform` (`vertexai`) |
+| **vertex** | `vertex.gemini.generate`, `vertex.imagen.generate` (images, base64), `vertex.veo.generate`, `vertex.veo.status`, `vertex.gemini.generate_ad_copy` | `vertex.api` | none — direct Vertex REST (`google-auth` only) |
 | **trends** | `trends.interest_over_time`, `trends.related_queries`, `trends.trending_now`, `trends.interest_by_region` | `trends.api` | `pytrends` (unofficial) |
 | **gbp** | `gbp.accounts.list`, `gbp.locations.list`, `gbp.location.get`, `gbp.performance.fetch`, `gbp.reviews.list` (allowlist), `gbp.review.reply`, `gbp.location.update` | `gbp.api`, `gbp.reviews`, `gbp.mutate` | `google-api-python-client` (mybusiness v1 + v4 reviews) |
 | **looker** | `looker.dashboards.list`, `looker.looks.list`, `looker.look.run`, `looker.query.run`, `looker.dashboard.create` | `looker.api`, `looker.mutate` | `looker_sdk` |

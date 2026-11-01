@@ -1,11 +1,33 @@
 # Live Validation Results
 
 Real-API conformance of every reachable connector, run against live Google endpoints with a
-broad-scope OAuth token (since revoked). The suite lives under `tests/live_smoke/` and runs with
-`uv run pytest -m live`. It performs **reads and `validate_only` previews only** — no account is
-mutated, no billable generation is invoked.
+broad-scope OAuth token. The suite lives under `tests/live_smoke/` and runs with
+`uv run pytest -m live`. It performs **reads and `validate_only` previews** — no account is
+mutated. The only billable calls are one short Gemini text and one Gemini image generation
+(a few cents); Veo video generation is opt-in (`VERTEX_LIVE_VEO=1`, several USD per clip).
 
-**Last live run:** 32 passed · 6 skipped · 0 failed.
+## 2026-11-01 refresh run (current stack)
+
+Stack: fastmcp 4.1.4 on the MCP Python SDK 2.3.0 (protocol revision 2026-07-28), Google Ads
+API **v26** via google-ads 35.0.0, google-api-python-client 2.201, Vertex AI over pure REST.
+
+| Check | Result |
+|-------|--------|
+| Live suite (`pytest -m live`) | **54 passed · 15 skipped · 0 failed** |
+| Discovery conformance (13 API surfaces) | 13/13 |
+| GAQL field conformance (offline, every queried field vs SDK protos) | v24 ✓ · v26 ✓ (27 fields) |
+| Vertex catalog conformance (defaults listed + GA) | 3/3 |
+| MCP protocol E2E (real client, full assembly) | 4/4 |
+| Real stdio subprocess smoke | 127 tools served, `health` → v26, 365 days to sunset |
+| Unit / integration (`-m "not live"`) | 467 passed, mypy --strict clean |
+
+The 15 skips: 8 Google Ads (no developer token in this environment), 3 enterprise reads that
+reach the API but are gated externally (ADH, CM360, GBP — no account), BigQuery `tables.list`
+(no dataset), DV360 `advertisers.list` (no partner id), pytrends endpoint drift, Veo (opt-in).
+
+## Earlier runs
+
+**June live run:** 32 passed · 6 skipped · 0 failed.
 **Discovery conformance:** 13/13 surfaces pass (account-free, token-free API-contract check).
 **Broad-token run (17 scopes granted, 8 further APIs enabled):** 0 failures. merchant, vertex, and
 the dv360/cm360/sa360/adh/gbp reachability suites all ran — every `validate_only` contract passes and
@@ -36,7 +58,7 @@ pending a re-consent token · 🚫 blocked by an external prerequisite · ⚪ co
 | trends | interest_over_time | ✅ live-green | pytrends is unofficial + rate-limited; trending_now skipped on endpoint drift |
 | recaptcha | keys.list, annotate `validate_only` | ✅ live-green | assessment.create needs a real site key + frontend token |
 | merchant | products/accounts + insert `validate_only` | ✅ live-green | GCP project registered with the Merchant account programmatically via the Merchant API `developerRegistration:registerGcp`; all three pass |
-| vertex | Gemini micro-generation (REST, `global` endpoint) | ✅ live-green | real billable Gemini 2.5 Flash-Lite round-trip via direct REST `generateContent`; Imagen/Veo on the lazy vision SDK |
+| vertex | Gemini text + image generation, Veo generate/poll (pure REST) | ✅ live-green | text `gemini-3.8-flash` and image `gemini-3.1-flash-image` round-trip for real; defaults verified GA in the live catalog; Veo 3.1 generate + `vertex.veo.status` polling is opt-in (cost) |
 | dv360 | advertisers/campaigns/lineItems + `validate_only` | 🟢 contract-conformant · reachability-ready | method surface verified vs live discovery; no no-account list (needs a partner id) |
 | cm360 | userProfiles/campaigns/placements/reports + `validate_only` | 🟢 contract-conformant · reachability-ready | `userProfiles.list` runs empty without a CM360 account |
 | sa360 | search + listAccessible + conversion `validate_only` | 🟢 contract-conformant · reachability-ready | `customers.listAccessible` runs empty without an SA360 account |
@@ -93,6 +115,20 @@ real APIs:
     ingests offline events via `events.ingest`. The mutate plane now targets that method.
 16. **meridian** — the connector imported a fictional `DataFrameInputDataLoader`; the real
     `google-meridian` loader is `DataFrameDataLoader`. Found by the isolated-venv library check.
+17. **core / google_ads** — the Ads read connector built the Google Ads client at registration,
+    and building it authenticates: missing or invalid Ads credentials crashed the **whole server**
+    at startup (every other connector with it). Found by the real stdio smoke; the client is now
+    built lazily on first call and an auth failure surfaces as that tool's structured error.
+18. **vertex** — model ids rotted between June and November 2026: the Gemini 2.5 text family
+    (including the default `gemini-2.5-flash`) now 404s on `generateContent`, every Imagen model
+    left the publisher catalog, and Veo 3.0 was replaced by 3.1. Defaults re-chosen from the live
+    catalog (GA + generating) and guarded by the new catalog-conformance test.
+19. **vertex** — generated images were discarded (only index + MIME type returned); they are now
+    returned as base64.
+20. **vertex** — Veo returned a long-running operation with no way to poll it; new
+    `vertex.veo.status` tool fetches completion and the video URIs/bytes.
+21. **ci** — every action ran on Node 20, removed from GitHub-hosted runners on 2026-09-16, and
+    Scorecard's v2.4.0 image was no longer served from gcr.io (weekly failures since September).
 
 ## API-contract conformance (no account, no token, no cost)
 

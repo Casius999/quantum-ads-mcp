@@ -7,9 +7,9 @@
 [![CI](https://github.com/Casius999/quantum-ads-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Casius999/quantum-ads-mcp/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/Casius999/quantum-ads-mcp/actions/workflows/codeql.yml/badge.svg)](https://github.com/Casius999/quantum-ads-mcp/actions/workflows/codeql.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Casius999/quantum-ads-mcp/badge)](https://scorecard.dev/viewer/?uri=github.com/Casius999/quantum-ads-mcp)
-[![Google Ads API](https://img.shields.io/badge/Google%20Ads%20API-v24-blue.svg)](https://developers.google.com/google-ads/api/docs/release-notes)
+[![Google Ads API](https://img.shields.io/badge/Google%20Ads%20API-v26-blue.svg)](https://developers.google.com/google-ads/api/docs/release-notes)
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-green.svg)](https://www.python.org/)
-[![MCP](https://img.shields.io/badge/MCP-FastMCP%203.4-purple.svg)](https://modelcontextprotocol.io/)
+[![MCP](https://img.shields.io/badge/MCP-FastMCP%204.1%20%C2%B7%202026--07--28-purple.svg)](https://modelcontextprotocol.io/)
 [![connectors](https://img.shields.io/badge/connectors-20-orange.svg)](CONNECTORS.md)
 [![mypy](https://img.shields.io/badge/mypy-strict-blue.svg)](pyproject.toml)
 [![coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)](pyproject.toml)
@@ -29,7 +29,8 @@ stack. Built for an AI agent to operate that stack at full granularity, safely.
 > **Status.** The full connector surface is built and tested at the logic layer: **read + guarded
 > write across 20 products**, every tool exercised by mocked tests (no live SDK needed). The
 > per-product **live SDK glue is isolated in `sdk.py` modules and smoke-gated** (verified against
-> real APIs with your own credentials, not in CI). Remaining for full production hardening: remote
+> real APIs with your own credentials, not in CI — latest run 2026-11-01: 54 passed, 0 failed, see
+> [docs/LIVE_VALIDATION_RESULTS.md](docs/LIVE_VALIDATION_RESULTS.md)). Remaining for full production hardening: remote
 > OAuth 2.1 transport + multi-tenant secret store + observability (see Roadmap). Read-only by
 > default. Every "most X" claim here is meant to be verifiable.
 
@@ -48,7 +49,7 @@ flowchart TD
     Core --> C3["dv360 &middot; cm360 &middot; sa360"]
     Core --> C4["bigquery &middot; adh &middot; looker &middot; meridian"]
     Core --> C5["vertex &middot; trends &middot; gbp &middot; language &middot; workspace &middot; recaptcha"]
-    C1 -. "smoke-gated sdk.py" .-> G["Google APIs (Ads v24, GA4, GTM, Merchant, &hellip;)"]
+    C1 -. "smoke-gated sdk.py" .-> G["Google APIs (Ads v26, GA4, GTM, Merchant, &hellip;)"]
     C4 -. "smoke-gated sdk.py" .-> G
 ```
 
@@ -64,19 +65,19 @@ multi-product.** Quantum ADS fills that gap.
 
 | Domain | Connectors |
 |--------|-----------|
-| **Paid media** | Google Ads (v24), DV360, CM360, SA360 |
+| **Paid media** | Google Ads (v26), DV360, CM360, SA360 |
 | **Measurement** | GA4 (Data + Admin), Data Manager API (Customer Match + conversions), Search Console |
 | **Catalog / tagging** | Merchant API, Google Tag Manager (+ server-side, Consent Mode v2) |
 | **Channels** | YouTube (Data + Analytics + Reporting), Business Profile, Trends |
 | **Warehouse / BI / MMM** | BigQuery (cost-guarded), Ads Data Hub, Looker, Meridian (Bayesian MMM) |
-| **Creative / ops** | Vertex AI (Gemini / Imagen 4 / Veo 3), Cloud Translation + NL, Workspace (Sheets/Drive/Slides), reCAPTCHA Enterprise |
+| **Creative / ops** | Vertex AI (Gemini 3.8 / Gemini image / Veo 3.1, pure REST), Cloud Translation + NL, Workspace (Sheets/Drive/Slides), reCAPTCHA Enterprise |
 
 Full tool catalog, backend keys, and required SDK packages: **[CONNECTORS.md](CONNECTORS.md)**.
 
 ## Core (shared by every connector)
 
 - **Multi-tenant auth + secret store** — credentials load from env / secret manager and **never reach the LLM**.
-- **Version resilience** — pinned **v24**, sunset guard (days-until-sunset), **unknown-enum tolerance** (survives Google's monthly API releases and the 2026-06-10 DV360 Demand Gen rollout).
+- **Version resilience** — pinned **Google Ads API v26** from one `DEFAULT_API_VERSION`, official sunset table + guard (days-until-sunset), **offline GAQL field conformance** (every queried field resolved against the SDK protos of the pinned version), `ads.api.version_delta` (exact resources/services/enums added or removed between two versions), and **unknown-enum tolerance** for Google's monthly releases.
 - **Query engine** — GAQL build / validate (single-FROM, no-`OR`, segment rules, 37-month cap) / stream / flatten, with quota token-buckets + exponential backoff. SA360 uses the same query shape.
 - **Safety spine** — **read-only by default**; every mutation is guarded: `validate_only` preview → **two-step confirm token** → **Ed25519 signed audit ledger**. Consent-aware (Data Manager / Consent Mode v2) and cost-aware (BigQuery dry-run, $6.25/TiB).
 - **Connector registry + meta-tool discovery** (`list_capabilities`, `describe_tool`) and **env-based connector selection** (`QUANTUM_ADS_CONNECTORS`) so the tool list stays focused.
@@ -87,7 +88,7 @@ Full tool catalog, backend keys, and required SDK packages: **[CONNECTORS.md](CO
 git clone https://github.com/Casius999/quantum-ads-mcp.git
 cd quantum-ads-mcp
 uv sync --extra dev
-uv run pytest -m "not live"      # 250+ tests, no credentials needed
+uv run pytest -m "not live"      # 460+ tests, no credentials needed
 ```
 
 Per-connector live SDKs (e.g. `google-analytics-data`, `google-api-python-client`,
@@ -100,7 +101,7 @@ Credentials load from environment variables (no secrets on disk):
 
 ```bash
 GOOGLE_ADS_USE_PROTO_PLUS=True
-GOOGLE_ADS_API_VERSION=v24
+GOOGLE_ADS_API_VERSION=v26
 GOOGLE_ADS_DEVELOPER_TOKEN=...
 GOOGLE_ADS_CLIENT_ID=....apps.googleusercontent.com
 GOOGLE_ADS_CLIENT_SECRET=...
@@ -133,8 +134,9 @@ per-product live SDK calls are smoke-gated and labelled as such.
 ## Roadmap (remaining for full production hardening)
 
 Remote **Streamable HTTP + OAuth 2.1/PKCE** transport · multi-tenant secret store (per-client
-OAuth) · observability (structured logging + tracing) · live-API conformance suite · optional
-anchoring of the signed audit ledger.
+OAuth) · observability (structured logging + tracing) · optional anchoring of the signed audit
+ledger. (The live-API conformance suite is done: `tests/live_smoke/`, incl. account-free discovery,
+GAQL-field and Vertex-catalog conformance.)
 
 ## License
 
