@@ -52,6 +52,7 @@ connectors = [
   "google-shopping-merchant-accounts>=1.6",
   "looker-sdk>=24.0",
   "pytrends>=4.9",
+  "gradio_client>=2.7",  # free text-to-video via Hugging Face ZeroGPU Spaces
 ]
 # Meridian (marketing-mix modeling) is a LOCAL library, not a Google API. It pulls a heavy
 # TensorFlow + tfp-nightly stack that forces numpy/pandas DOWNGRADES conflicting with the other
@@ -92,7 +93,7 @@ module = [
   "google.analytics.*", "google.cloud.*", "googleapiclient.*",
   "google_auth_oauthlib.*", "google.oauth2.*", "google.auth.*",
   "google.shopping.*", "pytrends.*",
-  "looker_sdk.*", "meridian.*",
+  "looker_sdk.*", "meridian.*", "gradio_client.*",
 ]
 ignore_missing_imports = true
 
@@ -119,6 +120,7 @@ module = [
   "quantum_ads.connectors.workspace.sdk",
   "quantum_ads.connectors.recaptcha.sdk",
   "quantum_ads.connectors.adh.sdk",
+  "quantum_ads.connectors.video.sdk",
 ]
 ignore_errors = true
 

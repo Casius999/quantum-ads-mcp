@@ -81,11 +81,19 @@ def test_looker_needs_its_own_api3_credentials():
         "LOOKERSDK_CLIENT_SECRET": "s",
     }
     wired = build_backends(env)
-    assert {"looker.api", "looker.mutate", "trends.api", "meridian.api"} == set(wired)
+    assert {"looker.api", "looker.mutate", "trends.api", "meridian.api", "video.free"} == set(wired)
 
 
 def test_no_credentials_only_wires_credential_free_backends():
-    assert set(build_backends({})) == {"trends.api", "meridian.api"}
+    assert set(build_backends({})) == {"trends.api", "meridian.api", "video.free"}
+
+
+def test_free_video_uses_an_hf_token_only_when_set():
+    anonymous = build_backends({})["video.free"]
+    with_token = build_backends({"HF_TOKEN": "hf_x"})["video.free"]
+    assert isinstance(anonymous, LazyBackend) and isinstance(with_token, LazyBackend)
+    assert anonymous._creds == {}
+    assert with_token._creds == {"hf_token": "hf_x"}
 
 
 def test_backend_is_built_on_first_call_then_reused(monkeypatch):

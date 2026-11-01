@@ -40,6 +40,6 @@ def test_unknown_connector_name_is_ignored():
     assert names == {"core", "ga4"}
 
 
-def test_default_connectors_cover_nineteen_products():
-    # google_ads contributes two registrars (read + write); 20 products -> 21 registrars.
-    assert len(DEFAULT_CONNECTORS) == 21
+def test_default_connectors_cover_every_product():
+    # google_ads contributes two registrars (read + write); 21 products -> 22 registrars.
+    assert len(DEFAULT_CONNECTORS) == 22
