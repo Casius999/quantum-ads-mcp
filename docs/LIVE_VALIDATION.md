@@ -7,8 +7,9 @@ how to verify them against real Google APIs with your own credentials.
 
 - **Reads + `validate_only` only.** Live write checks call the API with `validate_only=True`, a dry
   run that is **never applied** — no budgets, statuses, conversions, or catalog entries change.
-- **No paid calls.** Vertex generation (Imagen/Veo) and large BigQuery scans are excluded;
-  BigQuery uses `dry_run` (estimate, scans nothing).
+- **Minimal paid calls.** Only one short Gemini text and one Gemini image generation run (a few
+  cents). Veo video generation is opt-in (`VERTEX_LIVE_VEO=1`, several USD per clip). Large
+  BigQuery scans are excluded; BigQuery uses `dry_run` (estimate, scans nothing).
 - **Credentials never touch git.** Put them in a local `.env` at the repo root — it is gitignored
   (alongside `google-ads.yaml` and `client_secret*.json`). Never commit or paste them anywhere tracked.
 
