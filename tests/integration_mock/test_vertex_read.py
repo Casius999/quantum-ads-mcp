@@ -47,6 +47,7 @@ def test_vertex_tools_registered():
     assert "vertex.gemini.generate" in names
     assert "vertex.imagen.generate" in names
     assert "vertex.veo.generate" in names
+    assert "vertex.veo.status" in names
     assert "vertex.gemini.generate_ad_copy" in names
 
 
@@ -227,3 +228,32 @@ def test_read_tools_degrade_when_backend_missing():
     )
     names = {t.name for t in assembled.registry.all_tools()}
     assert "vertex.gemini.generate" in names
+
+
+# --- veo polling + model override ------------------------------------------------------------
+
+
+def test_get_veo_status_polls_the_operation():
+    seen: dict[str, object] = {}
+
+    def read(operation: str, params: dict[str, object]) -> list[dict[str, object]]:
+        seen["operation"] = operation
+        seen["params"] = params
+        return [{"operation_name": params["operation_name"], "done": True, "videos": []}]
+
+    op = "projects/p/locations/us-central1/publishers/google/models/veo-3.1-generate-001/operations/9"
+    out = gen_tools.get_veo_status(operation_name=op, backend=read)
+    assert out["item_count"] == 1
+    assert seen == {"operation": gen_tools.OP_VEO_STATUS, "params": {"operation_name": op}}
+
+
+def test_get_veo_status_backend_not_configured():
+    out = gen_tools.get_veo_status(operation_name="op", backend=None)
+    assert out["error"]["code"] == "BACKEND_NOT_CONFIGURED"
+
+
+def test_model_override_is_forwarded_only_when_given():
+    assert "model" not in gen_tools.build_imagen_request(prompt="p")
+    assert "model" not in gen_tools.build_veo_request(prompt="p")
+    assert gen_tools.build_imagen_request(prompt="p", model="imagen-x")["model"] == "imagen-x"
+    assert gen_tools.build_veo_request(prompt="p", model="veo-x")["model"] == "veo-x"

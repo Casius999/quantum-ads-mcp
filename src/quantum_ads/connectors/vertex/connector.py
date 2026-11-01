@@ -1,12 +1,13 @@
 """Mount the Vertex AI generative tools onto the FastMCP app + register their capabilities.
 
-The single backend is keyed ``"vertex.api"`` (a ``ReadFn`` dispatching gemini/imagen/veo). It is
+The single backend is keyed ``"vertex.api"`` (a ``ReadFn`` dispatching gemini/imagen/veo/veo.status). It is
 read lazily per call via ``ctx.backend(...)`` so the connector degrades gracefully (structured
 ``BACKEND_NOT_CONFIGURED`` error) when the backend is not wired.
 
-All four tools are flagged ``read_only=True``: they perform no account mutation and are therefore
+All five tools are flagged ``read_only=True``: they perform no account mutation and are therefore
 NOT guarded by the ``WriteExecutor`` (no validate-only preview / two-step confirm). They DO incur
-Vertex AI generation cost — the operator controls spend — which each tool description documents.
+Vertex AI generation cost — the operator controls spend — which each tool description documents
+(``vertex.veo.status`` only polls an existing operation and generates nothing).
 """
 
 from __future__ import annotations
@@ -52,24 +53,32 @@ def register_vertex(app: FastMCP, ctx: ServerContext) -> None:
         prompt: str,
         n: int = gen_tools.DEFAULT_IMAGE_COUNT,
         aspect_ratio: str = gen_tools.DEFAULT_ASPECT_RATIO,
+        model: str = "",
     ) -> dict[str, object]:
         read = backend()
         if read is None:
             return dict(_NOT_CONFIGURED)
         return gen_tools.generate_imagen(
-            prompt=prompt, n=n, aspect_ratio=aspect_ratio, backend=read
+            prompt=prompt, n=n, aspect_ratio=aspect_ratio, model=model, backend=read
         )
 
     def vertex_veo_generate(
         prompt: str,
         duration_seconds: int = gen_tools.DEFAULT_VIDEO_DURATION_SECONDS,
+        model: str = "",
     ) -> dict[str, object]:
         read = backend()
         if read is None:
             return dict(_NOT_CONFIGURED)
         return gen_tools.generate_veo(
-            prompt=prompt, duration_seconds=duration_seconds, backend=read
+            prompt=prompt, duration_seconds=duration_seconds, model=model, backend=read
         )
+
+    def vertex_veo_status(operation_name: str) -> dict[str, object]:
+        read = backend()
+        if read is None:
+            return dict(_NOT_CONFIGURED)
+        return gen_tools.get_veo_status(operation_name=operation_name, backend=read)
 
     def vertex_gemini_generate_ad_copy(
         product: str,
@@ -89,13 +98,21 @@ def register_vertex(app: FastMCP, ctx: ServerContext) -> None:
         ),
         (
             "vertex.imagen.generate",
-            "Generate n images with Imagen 4. Incurs Vertex generation cost per image.",
+            "Generate n images, returned as base64 (default model gemini-3.1-flash-image; pass "
+            "model to override). Incurs Vertex cost per image.",
             vertex_imagen_generate,
         ),
         (
             "vertex.veo.generate",
-            "Generate a video clip with Veo 3 (returns an op ref to poll). Incurs Vertex cost.",
+            "Generate a video clip with Veo 3.1 (returns an operation to poll with "
+            "vertex.veo.status). "
+            "Incurs Vertex cost.",
             vertex_veo_generate,
+        ),
+        (
+            "vertex.veo.status",
+            "Poll a Veo operation; when done, returns the generated video URIs/bytes. No cost.",
+            vertex_veo_status,
         ),
         (
             "vertex.gemini.generate_ad_copy",
