@@ -8,7 +8,7 @@
 [![CodeQL](https://github.com/Casius999/quantum-ads-mcp/actions/workflows/codeql.yml/badge.svg)](https://github.com/Casius999/quantum-ads-mcp/actions/workflows/codeql.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Casius999/quantum-ads-mcp/badge)](https://scorecard.dev/viewer/?uri=github.com/Casius999/quantum-ads-mcp)
 [![Google Ads API](https://img.shields.io/badge/Google%20Ads%20API-v26-blue.svg)](https://developers.google.com/google-ads/api/docs/release-notes)
-[![Python](https://img.shields.io/badge/Python-3.11%20%E2%80%93%203.14-green.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.11%20%E2%80%93%203.15-green.svg)](https://www.python.org/)
 [![MCP](https://img.shields.io/badge/MCP-FastMCP%204.1%20%C2%B7%202026--07--28-purple.svg)](https://modelcontextprotocol.io/)
 [![connectors](https://img.shields.io/badge/connectors-20-orange.svg)](CONNECTORS.md)
 [![mypy](https://img.shields.io/badge/mypy-strict-blue.svg)](pyproject.toml)
