@@ -23,7 +23,8 @@ typed (``Any``).
 Operation dispatch (first ReadFn argument):
   - ``interest_over_time``  -> ``TrendReq.interest_over_time`` (date-indexed relative interest)
   - ``related_queries``     -> ``TrendReq.related_queries`` (top + rising query tables)
-  - ``trending_now``        -> ``TrendReq.trending_searches`` (daily trending, per country)
+  - ``trending_now``        -> public Trending-now RSS feed (``read.rss``; pytrends'
+                               ``trending_searches`` endpoint was removed by Google)
   - ``interest_by_region``  -> ``TrendReq.interest_by_region`` (geo breakdown for a keyword)
 """
 
@@ -34,22 +35,7 @@ from typing import Any
 
 ReadFn = Callable[[str, dict[str, object]], list[dict[str, object]]]
 
-# pytrends country codes are full lowercase names (e.g. "united_states"), not ISO-2 geo codes.
-# Map the ISO-2 geo codes the tools speak to the trending_searches country-name space.
-_TRENDING_COUNTRY: dict[str, str] = {
-    "US": "united_states",
-    "GB": "united_kingdom",
-    "FR": "france",
-    "DE": "germany",
-    "ES": "spain",
-    "IT": "italy",
-    "CA": "canada",
-    "AU": "australia",
-    "JP": "japan",
-    "IN": "india",
-    "BR": "brazil",
-}
-_DEFAULT_TRENDING_COUNTRY = "united_states"
+_RSS_TIMEOUT_S = 20
 
 
 def read_factory(creds: dict[str, object], version: str) -> ReadFn:
@@ -87,10 +73,14 @@ def read_factory(creds: dict[str, object], version: str) -> ReadFn:
         return rows
 
     def _trending_now(params: dict[str, object]) -> list[dict[str, object]]:
-        geo = str(params["geo"]).upper()
-        country = _TRENDING_COUNTRY.get(geo, _DEFAULT_TRENDING_COUNTRY)
-        frame = session.trending_searches(pn=country)
-        return [{"rank": i, "query": str(v)} for i, v in enumerate(frame[0].tolist())]
+        import urllib.request
+
+        from .read.rss import parse_trending_rss, trending_rss_url
+
+        url = trending_rss_url(str(params["geo"]))
+        request = urllib.request.Request(url, headers={"User-Agent": "quantum-ads-mcp"})
+        with urllib.request.urlopen(request, timeout=_RSS_TIMEOUT_S) as response:  # noqa: S310
+            return parse_trending_rss(response.read().decode("utf-8"))
 
     def _interest_by_region(params: dict[str, object]) -> list[dict[str, object]]:
         keyword = str(params["keyword"])
