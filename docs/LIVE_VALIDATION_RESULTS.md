@@ -18,8 +18,8 @@ API **v26** via google-ads 35.0.0, google-api-python-client 2.201, Vertex AI ove
 | GAQL field conformance (offline, every queried field vs SDK protos) | v24 ✓ · v26 ✓ (27 fields) |
 | Vertex catalog conformance (defaults listed + GA) | 3/3 |
 | MCP protocol E2E (real client, full assembly) | 4/4 |
-| Real stdio subprocess smoke | 127 tools served, `health` → v26, 365 days to sunset |
-| Unit / integration (`-m "not live"`) | 467 passed, mypy --strict clean |
+| Real stdio subprocess smoke | 128 tools served, `health` → v26, 365 days to sunset; non-Ads connectors served live through the entrypoint (bug 22); `audit.status` persistent (bug 23) |
+| Unit / integration (`-m "not live"`) | 525 passed, mypy --strict clean |
 
 The 15 skips: 8 Google Ads (no developer token in this environment), 3 enterprise reads that
 reach the API but are gated externally (ADH, CM360, GBP — no account), BigQuery `tables.list`
@@ -129,6 +129,17 @@ real APIs:
     `vertex.veo.status` tool fetches completion and the video URIs/bytes.
 21. **ci** — every action ran on Node 20, removed from GitHub-hosted runners on 2026-09-16, and
     Scorecard's v2.4.0 image was no longer served from gcr.io (weekly failures since September).
+22. **entrypoint** — the shipped stdio server (`quantum-ads-mcp`) wired only Google Ads: every
+    other connector answered `BACKEND_NOT_CONFIGURED` even with valid credentials (the live suite
+    built backends itself, so it never saw this). New `quantum_ads/backends.py` maps all 37
+    backend keys to their `sdk.py` factories, builds them lazily from the environment, and a
+    completeness test fails if a connector reads an unmapped key. Proven over a real stdio
+    subprocess with bogus Ads credentials: Search Console, BigQuery and Vertex Gemini return data.
+23. **audit** — the signed ledger was in-memory only (key regenerated per process, records lost on
+    exit), every record was stamped `1970-01-01T00:00:00Z`, and records were not chained, so a
+    deleted record went unnoticed. It now persists (`audit.jsonl` + `audit_ed25519.pem` under
+    `QUANTUM_ADS_AUDIT_DIR`, default `~/.quantum-ads/audit`), stamps real UTC time, chains each
+    record to the previous by SHA-256, and exposes `audit.status` (chain check + public key).
 
 ## API-contract conformance (no account, no token, no cost)
 

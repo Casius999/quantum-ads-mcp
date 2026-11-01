@@ -79,7 +79,7 @@ Full tool catalog, backend keys, and required SDK packages: **[CONNECTORS.md](CO
 - **Multi-tenant auth + secret store** — credentials load from env / secret manager and **never reach the LLM**.
 - **Version resilience** — pinned **Google Ads API v26** from one `DEFAULT_API_VERSION`, official sunset table + guard (days-until-sunset), **offline GAQL field conformance** (every queried field resolved against the SDK protos of the pinned version), `ads.api.version_delta` (exact resources/services/enums added or removed between two versions), and **unknown-enum tolerance** for Google's monthly releases.
 - **Query engine** — GAQL build / validate (single-FROM, no-`OR`, segment rules, 37-month cap) / stream / flatten, with quota token-buckets + exponential backoff. SA360 uses the same query shape.
-- **Safety spine** — **read-only by default**; every mutation is guarded: `validate_only` preview → **two-step confirm token** → **Ed25519 signed audit ledger**. Consent-aware (Data Manager / Consent Mode v2) and cost-aware (BigQuery dry-run, $6.25/TiB).
+- **Safety spine** — **read-only by default**; every mutation is guarded: `validate_only` preview → **two-step confirm token** → **Ed25519-signed, hash-chained audit ledger**, persisted across restarts and verifiable with `audit.status`. Consent-aware (Data Manager / Consent Mode v2) and cost-aware (BigQuery dry-run, $6.25/TiB).
 - **Connector registry + meta-tool discovery** (`list_capabilities`, `describe_tool`) and **env-based connector selection** (`QUANTUM_ADS_CONNECTORS`) so the tool list stays focused.
 
 ## Install
@@ -88,7 +88,7 @@ Full tool catalog, backend keys, and required SDK packages: **[CONNECTORS.md](CO
 git clone https://github.com/Casius999/quantum-ads-mcp.git
 cd quantum-ads-mcp
 uv sync --extra dev
-uv run pytest -m "not live"      # 460+ tests, no credentials needed
+uv run pytest -m "not live"      # 520+ tests, no credentials needed
 ```
 
 Per-connector live SDKs (e.g. `google-analytics-data`, `google-api-python-client`,
@@ -97,7 +97,9 @@ Per-connector live SDKs (e.g. `google-analytics-data`, `google-api-python-client
 
 ## Configure
 
-Credentials load from environment variables (no secrets on disk):
+Credentials come from process environment variables (set them in your MCP client's `env` block;
+no secrets on disk). Every connector whose credentials resolve is wired at startup — lazily, so a
+bad credential only affects its own connector; the rest answer `BACKEND_NOT_CONFIGURED`.
 
 ```bash
 GOOGLE_ADS_USE_PROTO_PLUS=True
@@ -105,10 +107,18 @@ GOOGLE_ADS_API_VERSION=v26
 GOOGLE_ADS_DEVELOPER_TOKEN=...
 GOOGLE_ADS_CLIENT_ID=....apps.googleusercontent.com
 GOOGLE_ADS_CLIENT_SECRET=...
-GOOGLE_ADS_REFRESH_TOKEN=...
+GOOGLE_ADS_REFRESH_TOKEN=...               # also serves GA4/GTM/Merchant/YouTube/... if scoped
+GOOGLE_OAUTH_CLIENT_ID=...                 # optional dedicated non-Ads credential (+ _SECRET, _REFRESH_TOKEN)
+GOOGLE_CLOUD_PROJECT=my-project            # BigQuery, Vertex, Language, reCAPTCHA + quota routing
+GOOGLE_VERTEX_LOCATION=global              # optional
+LOOKERSDK_BASE_URL=...                     # Looker (+ LOOKERSDK_CLIENT_ID / _CLIENT_SECRET)
 QUANTUM_ADS_READ_ONLY=true                 # writes refused until set to false
-QUANTUM_ADS_CONNECTORS=google_ads,ga4,gtm  # optional: mount a subset (default: all 19)
+QUANTUM_ADS_CONNECTORS=google_ads,ga4,gtm  # optional: mount a subset (default: all)
+QUANTUM_ADS_AUDIT_DIR=~/.quantum-ads/audit # signed audit ledger (default shown; empty = in memory)
 ```
+
+Full credential matrix: [auth & guardrails](skill/quantum-ads/references/auth-and-guardrails.md) ·
+template: [.env.example](.env.example).
 
 > **Never commit** `.env`, `google-ads.yaml`, or `client_secret*.json` — all gitignored, and
 > `gitleaks` runs in CI. See [SECURITY.md](SECURITY.md).
