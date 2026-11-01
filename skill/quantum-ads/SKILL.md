@@ -1,20 +1,20 @@
 ---
 name: quantum-ads
-description: Use when operating the Quantum ADS MCP server — a sovereign Google marketing-agency control plane exposing 128 tools across 20 Google connectors (Ads API v26, GA4, GTM, Merchant, Data Manager, Search Console, YouTube, DV360/CM360/SA360, ADH, Business Profile, Workspace, BigQuery, Looker, Vertex AI, Trends, Meridian, Language, reCAPTCHA). Covers env-var auth per connector, the generated tool catalog, GAQL recipes/payloads, version discipline (Nov 2026), and the guarded write / spend / honesty guardrails.
+description: Use when operating the Quantum ADS MCP server — a sovereign Google marketing-agency control plane exposing 129 tools across 21 connectors (Ads API v26, GA4, GTM, Merchant, Data Manager, Search Console, YouTube, DV360/CM360/SA360, ADH, Business Profile, Workspace, BigQuery, Looker, Vertex AI, free text-to-video, Trends, Meridian, Language, reCAPTCHA), over stdio or OAuth 2.1-protected multi-tenant HTTP. Covers env-var auth per connector, remote serving, the generated tool catalog, GAQL recipes/payloads, version discipline (Nov 2026), and the guarded write / spend / honesty guardrails.
 ---
 
 # Quantum ADS — Google marketing agency control plane (MCP, November 2026)
 
 A FastMCP 4 server (MCP Python SDK 2, protocol revision 2026-07-28) exposing the Google marketing
-stack as MCP tools on one shared core. Launch: `quantum-ads-mcp` or `python -m quantum_ads`
-(stdio).
+stack as MCP tools on one shared core. Launch: `quantum-ads-mcp` (stdio) or
+`quantum-ads-mcp serve --transport http` (Streamable HTTP behind OAuth 2.1, multi-tenant).
 
 ## Architecture in one screen
 - **Core (shared):** credential store (tokens never reach the LLM), version manager (default
   **Ads API v26**, official sunset table, unknown-enum tolerance), GAQL build/validate/run engine
   with quota governors, safety spine (**read-only by default**, `validate_only` preview → two-step
   confirm token → Ed25519-signed, hash-chained, persistent audit ledger), connector registry + meta-tool discovery.
-- **20 connectors**, each reading its API through a named **backend** (`ctx.backend("<key>")`).
+- **21 connectors**, each reading its API through a named **backend** (`ctx.backend("<key>")`).
   The entrypoint builds every backend the environment can serve (`quantum_ads/backends.py`);
   backends are **lazy** — nothing authenticates until a tool is first called, so one connector's
   bad credentials never take the server down. An unwired backend answers
@@ -26,6 +26,8 @@ stack as MCP tools on one shared core. Launch: `quantum-ads-mcp` or `python -m q
 - Pull GA4 / Search Console / YouTube / BigQuery / Looker data; manage GTM, Merchant Center,
   Business Profile, DV360/CM360/SA360; upload first-party data via Data Manager.
 - Generate creative with Vertex AI (Gemini text, Gemini image, Veo video) or run Meridian MMM.
+- Generate short videos **for free** with `video.generate` (Wan 2.2 → LTX-Video on Hugging Face
+  ZeroGPU; daily GPU quota, `QUOTA_EXHAUSTED` when spent) — prefer it over paid Veo.
 - Check what changed between Ads API versions (`ads.api.version_delta`) and how close the pinned
   version is to sunset (`health`).
 
@@ -55,12 +57,13 @@ QUANTUM_ADS_READ_ONLY=true            # writes refused until set to false
 Optional: `GOOGLE_OAUTH_{CLIENT_ID,CLIENT_SECRET,REFRESH_TOKEN}` (separate non-Ads credential),
 `GOOGLE_VERTEX_LOCATION` (default `global`), `LOOKERSDK_{BASE_URL,CLIENT_ID,CLIENT_SECRET}`,
 `GOOGLE_ADS_API_VERSION`, `GOOGLE_ADS_LOGIN_CUSTOMER_ID`, `QUANTUM_ADS_CONNECTORS` (mount a
-subset), `QUANTUM_ADS_AUDIT_DIR` (audit ledger location; empty = in memory). Full matrix + secret hygiene: `references/auth-and-guardrails.md`.
+subset), `QUANTUM_ADS_AUDIT_DIR` (audit ledger location; empty = in memory). Remote (HTTP) serving, tokens, scopes and tenants: see "Remote serving" in
+`references/auth-and-guardrails.md`. Full matrix + secret hygiene: same file.
 
 ## Tool catalog
 - **Meta:** `health`, `list_capabilities`, `describe_tool`, `audit.status` — call
   `list_capabilities` first.
-- Full generated list (128 tools, read vs guarded write): `references/tool-catalog.md`.
+- Full generated list (129 tools, read vs guarded write): `references/tool-catalog.md`.
 - GAQL recipes + payload patterns: `references/gaql-and-payloads.md`.
 
 ## Guardrails (always)
@@ -70,7 +73,8 @@ subset), `QUANTUM_ADS_AUDIT_DIR` (audit ledger location; empty = in memory). Ful
   (persisted under `~/.quantum-ads/audit` by default; `audit.status` verifies the chain). Never
   skip the preview.
 2. **Spend is real.** Vertex generation (text/image/video) and BigQuery scans bill the GCP
-   project. Prefer BigQuery `dry_run`; treat Veo as several USD per clip — ask before running.
+   project. Prefer BigQuery `dry_run`; for video use the free `video.generate` first and treat
+   Veo as several USD per clip — ask before running it.
 3. **Honest claims.** The defensible claim is coverage + engineering rigor + safety + version
    resilience — never "record ad performance" (budget, creative and Google's auction decide
    that). State only what tests or live calls proved.

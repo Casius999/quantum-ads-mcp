@@ -6,7 +6,33 @@ broad-scope OAuth token. The suite lives under `tests/live_smoke/` and runs with
 mutated. The only billable calls are one short Gemini text and one Gemini image generation
 (a few cents); Veo video generation is opt-in (`VERTEX_LIVE_VEO=1`, several USD per clip).
 
-## 2026-11-01 refresh run (current stack)
+## 2026-11-01 — Google Ads v26 live, OAuth 2.1 HTTP, free video (current)
+
+| Check | Result |
+|-------|--------|
+| Live suite (`pytest -m live`) | **61 passed · 9 skipped · 0 failed** |
+| Google Ads API **v26** live (`ListAccessibleCustomers`, GAQL customer + campaign reads, standard + feature reports, change history, `budget.update` validate_only) | **7 passed**, 1 skip (no campaign in the account to validate `set_status` against) |
+| Google Ads through the shipped stdio server | `health` → v26 / 365 days; `ads.gaql.query` returns real customer rows |
+| OAuth 2.1 HTTP transport (real uvicorn server + real MCP client) | 11/11: no token / forged / expired / wrong audience / missing scope → 401; tenant isolation; unknown tenant refused; read scope cannot write; write scope runs the guarded flow and audits `tenant:subject`; external IdP JWKS + RFC 9728 metadata; single-tenant mode |
+| Free text-to-video (`video.generate`) | clips generated with the same Spaces + arguments (Wan 2.2: 832x480, 3 s in 33 s; LTX-Video: 704x512, 3 s in 12 s); live test skips when the free daily ZeroGPU quota is spent — observed today after those clips, reported by the tool as `QUOTA_EXHAUSTED` |
+| Unit / integration (`-m "not live"`) | 574 passed, mypy --strict clean |
+
+The 9 skips: Google Ads `set_status` (no campaign), 3 enterprise reads gated externally (ADH,
+CM360, GBP — no account), BigQuery `tables.list` (no dataset), DV360 (no partner id), pytrends
+endpoint drift, Veo (paid, opt-in), free video (daily quota spent).
+
+What it took for Ads: the developer token's access level is bound to the Google Cloud project of
+the OAuth client that first used it (`CLOUD_PROJECT_NOT_APPROVED_FOR_PRODUCTION` from any other
+project). `scripts/get_refresh_token.py --ads` mints an Ads-only refresh token for that client
+without touching the shared `GOOGLE_OAUTH_*` credential.
+
+24. **remote / multi-tenant** — the 16 write connectors cached their `WriteExecutor` on first use,
+    binding the first caller's backend for the process lifetime; harmless over single-operator
+    stdio, a cross-tenant credential leak over HTTP. Executors are now built per call and every
+    backend, the Ads client, the write guard and the audit actor resolve through the request
+    principal (bug found while designing the HTTP transport, covered by the E2E isolation tests).
+
+## 2026-11-01 refresh run
 
 Stack: fastmcp 4.1.4 on the MCP Python SDK 2.3.0 (protocol revision 2026-07-28), Google Ads
 API **v26** via google-ads 35.0.0, google-api-python-client 2.201, Vertex AI over pure REST.

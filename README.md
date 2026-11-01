@@ -10,33 +10,34 @@
 [![Google Ads API](https://img.shields.io/badge/Google%20Ads%20API-v26-blue.svg)](https://developers.google.com/google-ads/api/docs/release-notes)
 [![Python](https://img.shields.io/badge/Python-3.11%20%E2%80%93%203.15-green.svg)](https://www.python.org/)
 [![MCP](https://img.shields.io/badge/MCP-FastMCP%204.1%20%C2%B7%202026--07--28-purple.svg)](https://modelcontextprotocol.io/)
-[![connectors](https://img.shields.io/badge/connectors-20-orange.svg)](CONNECTORS.md)
+[![connectors](https://img.shields.io/badge/connectors-21-orange.svg)](CONNECTORS.md)
 [![mypy](https://img.shields.io/badge/mypy-strict-blue.svg)](pyproject.toml)
 [![coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)](pyproject.toml)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE)
 
-**The most complete open Model Context Protocol control plane for the Google marketing stack** — 20 connectors, read + guarded write, Ed25519 signed audit, OAuth 2.1 multi-tenant.
+**The most complete open Model Context Protocol control plane for the Google marketing stack** — 21 connectors, read + guarded write, Ed25519 signed audit, OAuth 2.1 multi-tenant.
 
-[Architecture](#architecture) · [The 20 connectors](#the-20-connectors) · [Install](#install) · [Configure](#configure) · [Safety](#safety--honest-claims) · [Roadmap](#roadmap-remaining-for-full-production-hardening)
+[Architecture](#architecture) · [The 21 connectors](#the-21-connectors) · [Install](#install) · [Configure](#configure) · [Safety](#safety--honest-claims) · [Roadmap](#roadmap)
 
 </div>
 
 A **sovereign Google marketing-agency control plane** over the Model Context Protocol: a shared
 core (multi-tenant auth, version resilience, a GAQL/query engine, a safety spine with a signed
-audit ledger) and **20 pluggable per-product connectors** spanning the entire Google marketing
+audit ledger) and **21 pluggable per-product connectors** spanning the entire Google marketing
 stack. Built for an AI agent to operate that stack at full granularity, safely.
 
 > **Status.** The full connector surface is built and tested at the logic layer: **read + guarded
-> write across 20 products**, every tool exercised by mocked tests (no live SDK needed). The
+> write across 21 products**, every tool exercised by mocked tests (no live SDK needed). The
 > per-product **live SDK glue is isolated in `sdk.py` modules and smoke-gated** (verified against
-> real APIs with your own credentials, not in CI — latest run 2026-11-01: 54 passed, 0 failed, see
-> [docs/LIVE_VALIDATION_RESULTS.md](docs/LIVE_VALIDATION_RESULTS.md)). Remaining for full production hardening: remote
-> OAuth 2.1 transport + multi-tenant secret store + observability (see Roadmap). Read-only by
-> default. Every "most X" claim here is meant to be verifiable.
+> real APIs with your own credentials, not in CI — Google Ads API v26 included; see
+> [docs/LIVE_VALIDATION_RESULTS.md](docs/LIVE_VALIDATION_RESULTS.md)). Served over **stdio** or
+> **Streamable HTTP behind OAuth 2.1** (JWT bearer tokens, RFC 9728 metadata, per-tenant
+> credentials and scopes), verified end to end against a real HTTP server. Read-only by default.
+> Every "most X" claim here is meant to be verifiable.
 
 ## Contents
 
-[Why](#why-this-exists) · [The 20 connectors](#the-20-connectors) · [Architecture](#architecture) · [Core](#core-shared-by-every-connector) · [Install](#install) · [Configure](#configure) · [Run](#run) · [Safety & honest claims](#safety--honest-claims) · [Roadmap](#roadmap-remaining-for-full-production-hardening)
+[Why](#why-this-exists) · [The 21 connectors](#the-21-connectors) · [Architecture](#architecture) · [Core](#core-shared-by-every-connector) · [Install](#install) · [Configure](#configure) · [Run](#run) · [Safety & honest claims](#safety--honest-claims) · [Roadmap](#roadmap)
 
 ## Architecture
 
@@ -61,7 +62,7 @@ the capable commercial ones are closed and remote-only. **No open, self-hostable
 simultaneously complete across the stack, write-capable, safe, tested, version-resilient, and
 multi-product.** Quantum ADS fills that gap.
 
-## The 20 connectors
+## The 21 connectors
 
 | Domain | Connectors |
 |--------|-----------|
@@ -70,7 +71,7 @@ multi-product.** Quantum ADS fills that gap.
 | **Catalog / tagging** | Merchant API, Google Tag Manager (+ server-side, Consent Mode v2) |
 | **Channels** | YouTube (Data + Analytics + Reporting), Business Profile, Trends |
 | **Warehouse / BI / MMM** | BigQuery (cost-guarded), Ads Data Hub, Looker, Meridian (Bayesian MMM) |
-| **Creative / ops** | Vertex AI (Gemini 3.8 / Gemini image / Veo 3.1, pure REST), Cloud Translation + NL, Workspace (Sheets/Drive/Slides), reCAPTCHA Enterprise |
+| **Creative / ops** | Vertex AI (Gemini 3.8 / Gemini image / Veo 3.1, pure REST), free text-to-video (Wan 2.2 / LTX-Video on Hugging Face ZeroGPU, no billing), Cloud Translation + NL, Workspace (Sheets/Drive/Slides), reCAPTCHA Enterprise |
 
 Full tool catalog, backend keys, and required SDK packages: **[CONNECTORS.md](CONNECTORS.md)**.
 
@@ -88,7 +89,7 @@ Full tool catalog, backend keys, and required SDK packages: **[CONNECTORS.md](CO
 git clone https://github.com/Casius999/quantum-ads-mcp.git
 cd quantum-ads-mcp
 uv sync --extra dev
-uv run pytest -m "not live"      # 520+ tests, no credentials needed
+uv run pytest -m "not live"      # 570+ tests, no credentials needed
 ```
 
 Per-connector live SDKs (e.g. `google-analytics-data`, `google-api-python-client`,
@@ -126,10 +127,33 @@ template: [.env.example](.env.example).
 ## Run
 
 ```bash
-python -m quantum_ads        # stdio MCP server
+quantum-ads-mcp                          # stdio MCP server (what MCP clients launch)
+quantum-ads-mcp serve --transport http   # remote: Streamable HTTP behind OAuth 2.1
 ```
 
-Wire it into your MCP client (Claude Desktop / VS Code) as a stdio server.
+Wire the stdio form into your MCP client (Claude Desktop / VS Code). The HTTP form is an OAuth 2.1
+**resource server**: every request needs `Authorization: Bearer <JWT>` (signature, `iss`, `aud`
+bound to the resource URL, expiry and the `ads:read` scope are checked; `ads:write` is required
+for guarded writes), and it refuses to start without token verification configured.
+
+```bash
+# With your identity provider (Entra ID, Okta, Auth0, Keycloak, Google, ...):
+QUANTUM_ADS_OAUTH_JWKS_URI=https://idp.example/.well-known/jwks.json
+QUANTUM_ADS_OAUTH_ISSUER=https://idp.example
+QUANTUM_ADS_PUBLIC_URL=https://ads.agency.example   # audience = <public url>/mcp
+
+# ...or self-hosted, with the built-in Ed25519 issuer:
+quantum-ads-mcp keygen                               # prints QUANTUM_ADS_OAUTH_PUBLIC_KEY_FILE=...
+quantum-ads-mcp token --tenant acme --scope "ads:read ads:write" --ttl 3600
+
+# Multi-tenant: one credential set per tenant, selected by the token's `tenant` claim.
+QUANTUM_ADS_TENANTS_FILE=tenants.json   # {"tenants": {"acme": {"GOOGLE_ADS_...": "..."}}}
+```
+
+With an external identity provider the server publishes Protected Resource Metadata (RFC 9728)
+at `/.well-known/oauth-protected-resource/mcp`, so MCP clients discover where to sign in. Each
+tool call runs as the token's tenant: its own backends, Google Ads client, write permission and
+audit identity — never another tenant's or the operator's. Per-tenant rate limiting applies.
 
 ## Safety & honest claims
 
@@ -141,12 +165,11 @@ resilience**, each verifiable — *not* "record ad performance" (that depends on
 and Google's auction, not the server). Documentation states only what the test suite proves; the
 per-product live SDK calls are smoke-gated and labelled as such.
 
-## Roadmap (remaining for full production hardening)
+## Roadmap
 
-Remote **Streamable HTTP + OAuth 2.1/PKCE** transport · multi-tenant secret store (per-client
-OAuth) · observability (structured logging + tracing) · optional anchoring of the signed audit
-ledger. (The live-API conformance suite is done: `tests/live_smoke/`, incl. account-free discovery,
-GAQL-field and Vertex-catalog conformance.)
+Observability (structured logging + tracing) · optional external anchoring of the signed audit
+ledger · a cloud secret-manager backend for the tenant credential file. (Done: the live-API
+conformance suite in `tests/live_smoke/`, and the OAuth 2.1 multi-tenant HTTP transport.)
 
 ## License
 
