@@ -8,6 +8,8 @@ import os
 
 import pytest
 
+from quantum_ads.core.versioning.version_manager import DEFAULT_API_VERSION
+
 pytestmark = pytest.mark.live
 
 _REQUIRED = (
@@ -32,7 +34,7 @@ def _customer_id(creds: dict[str, object]) -> str:
         return "".join(c for c in explicit if c.isdigit())
     from google.ads.googleads.client import GoogleAdsClient
 
-    client = GoogleAdsClient.load_from_dict(creds, version="v24")
+    client = GoogleAdsClient.load_from_dict(creds, version=DEFAULT_API_VERSION)
     names = client.get_service("CustomerService").list_accessible_customers().resource_names
     return names[0].split("/")[-1]
 
@@ -40,7 +42,7 @@ def _customer_id(creds: dict[str, object]) -> str:
 def _stream(creds: dict[str, object]):
     from quantum_ads.connectors.google_ads.sdk import default_stream_factory
 
-    return default_stream_factory(creds, "v24")
+    return default_stream_factory(creds, DEFAULT_API_VERSION)
 
 
 def test_standard_reports_succeed_live():
@@ -105,5 +107,7 @@ def test_campaign_set_status_validate_only_live():
             "status": "PAUSED",
         }
     ]
-    result = default_mutate_factory(creds, "v24")(cid, ops, True)  # validate_only -> never applied
+    result = default_mutate_factory(creds, DEFAULT_API_VERSION)(
+        cid, ops, True
+    )  # validate_only -> never applied
     assert result is not None

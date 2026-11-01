@@ -9,17 +9,22 @@ from __future__ import annotations
 import datetime as dt
 from collections.abc import Callable
 
-# Verified / approximate sunset dates (June 2026). Refine from the official sunset-dates page.
-# Google Ads API releases monthly in 2026; each major is supported ~12 months.
+# Official sunset months from developers.google.com/google-ads/api/docs/sunset-dates (read
+# 2026-11-01). Google publishes month granularity only, so each date is the FIRST day of the
+# sunset month: the guard warns early rather than late. Minor versions share their major's month.
 SUNSET_SCHEDULE: dict[str, dt.date] = {
-    "v20": dt.date(2026, 6, 10),  # verified
-    "v21": dt.date(2026, 9, 1),  # approximate
-    "v22": dt.date(2027, 2, 1),  # approximate
-    "v23": dt.date(2027, 4, 1),  # approximate
-    "v24": dt.date(2027, 5, 1),  # approximate (~12 months from GA 2026-04-22)
+    "v23": dt.date(2027, 2, 1),  # released 2026-01-28
+    "v24": dt.date(2027, 5, 1),  # released 2026-04-22
+    "v25": dt.date(2027, 8, 1),  # released 2026-07-22
+    "v26": dt.date(2027, 11, 1),  # released 2026-10-14 (latest)
 }
 
 ClientFactory = Callable[[dict[str, object], str], object]
+
+# Single source of truth for the pinned Google Ads API version (overridable per deployment via
+# GOOGLE_ADS_API_VERSION). Bump here; tests/integration_mock/test_gaql_field_conformance.py then
+# proves every field the tools query still exists in it.
+DEFAULT_API_VERSION = "v26"
 
 
 class VersionManager:

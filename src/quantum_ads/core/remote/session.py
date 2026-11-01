@@ -12,7 +12,7 @@ from ..context import MutateFactory, ServerContext, StreamFactory
 from ..registry.registry import ConnectorRegistry
 from ..safety.audit import AuditLedger
 from ..safety.mode import SafetyMode
-from ..versioning.version_manager import VersionManager
+from ..versioning.version_manager import DEFAULT_API_VERSION, VersionManager
 from .token import TokenClaims, verify_hs256
 
 
@@ -25,7 +25,7 @@ def build_remote_context(
     stream_factory: StreamFactory,
     mutate_factory: MutateFactory | None = None,
     backends: dict[str, object] | None = None,
-    version: str = "v24",
+    version: str = DEFAULT_API_VERSION,
 ) -> tuple[ServerContext, TokenClaims]:
     claims = verify_hs256(token, secret, now)
     creds = secret_store.get(claims.tenant_id).to_google_ads_dict()

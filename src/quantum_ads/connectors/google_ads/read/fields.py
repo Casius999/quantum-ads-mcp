@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from ..catalogs.v24_deltas import (
+from ..catalogs.deltas_2026 import (
     NEW_METRIC_FAMILIES_2026,
+    NEW_RESOURCES_V25_V26,
     NEW_SEGMENT_FAMILIES_2026,
     NEW_VIEWS_2026,
     REMOVED_FIELDS_2026,
@@ -14,7 +15,7 @@ from ..catalogs.v24_deltas import (
 FieldFetcher = Callable[[str], dict[str, object]]
 
 
-def list_v24_new_views() -> list[str]:
+def list_new_views() -> list[str]:
     return list(NEW_VIEWS_2026)
 
 
@@ -23,6 +24,7 @@ def field_deltas_2026() -> dict[str, object]:
         "new_views": list(NEW_VIEWS_2026),
         "new_metric_families": list(NEW_METRIC_FAMILIES_2026),
         "new_segment_families": list(NEW_SEGMENT_FAMILIES_2026),
+        "new_resources_v25_v26": list(NEW_RESOURCES_V25_V26),
         "removed_fields": list(REMOVED_FIELDS_2026),
     }
 
