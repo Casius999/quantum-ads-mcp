@@ -39,6 +39,8 @@ from .connectors.youtube import register_youtube
 from .core.auth.secret_store import EnvSecretStore
 from .core.context import MutateFactory, ServerContext, StreamFactory
 from .core.mcp.register import add_tool
+from .core.observability.middleware import ObservabilityMiddleware
+from .core.observability.recorder import CallRecorder
 from .core.registry.registry import Capability, ConnectorRegistry, ToolSpec
 from .core.safety.audit import AuditLedger
 from .core.safety.mode import SafetyMode
@@ -122,7 +124,10 @@ class AssembledServer:
 
 
 def health_payload(
-    version_manager: VersionManager, safety: SafetyMode, today: dt.date | None = None
+    version_manager: VersionManager,
+    safety: SafetyMode,
+    today: dt.date | None = None,
+    recorder: CallRecorder | None = None,
 ) -> dict[str, object]:
     days = version_manager.days_until_sunset(today)
     result: dict[str, object] = {
@@ -130,6 +135,8 @@ def health_payload(
         "days_until_sunset": days,
         "read_only": safety.read_only,
     }
+    if recorder is not None:
+        result["calls"] = recorder.summary()
     if days is not None and days < _SUNSET_WARN_DAYS:
         result["warning"] = f"API {version_manager.version} sunsets in {days} days — bump version"
     return result
@@ -156,13 +163,13 @@ def describe_tool_payload(registry: ConnectorRegistry, name: str) -> dict[str, o
     return {"name": spec.name, "summary": spec.summary, "read_only": spec.read_only}
 
 
-def _register_core(app: FastMCP, ctx: ServerContext) -> None:
+def _register_core(app: FastMCP, ctx: ServerContext, recorder: CallRecorder) -> None:
     registry = ctx.registry
     version_manager = ctx.version_manager
     safety = ctx.safety
 
     def health() -> dict[str, object]:
-        return health_payload(version_manager, safety)
+        return health_payload(version_manager, safety, recorder=recorder)
 
     def list_capabilities() -> list[dict[str, object]]:
         return capabilities_payload(registry)
@@ -231,6 +238,7 @@ def build_server(
     auth: AuthProvider | None = None,
     middleware: list[Middleware] | None = None,
     tenants: TenantDirectory | None = None,
+    recorder: CallRecorder | None = None,
 ) -> AssembledServer:
     creds = _operator_ads_creds(env)
     version = env.get("GOOGLE_ADS_API_VERSION") or DEFAULT_API_VERSION
@@ -250,8 +258,11 @@ def build_server(
         tenants=tenants,
     )
 
-    app: FastMCP = FastMCP("quantum-ads", auth=auth, middleware=middleware)
-    _register_core(app, ctx)
+    # Observability runs innermost, after auth/tenancy middleware has bound the principal.
+    recorder = recorder or CallRecorder()
+    stack = [*(middleware or []), ObservabilityMiddleware(recorder)]
+    app: FastMCP = FastMCP("quantum-ads", auth=auth, middleware=stack)
+    _register_core(app, ctx, recorder)
     for connector in connectors if connectors is not None else _selected_connectors(env):
         connector(app, ctx)
     return AssembledServer(app=app, registry=registry)

@@ -36,6 +36,13 @@ dev = [
   "pytest-mock>=3.14",
   "mypy>=1.10",
   "ruff>=0.5",
+  "opentelemetry-sdk>=1.30",
+]
+# OpenTelemetry trace export (OTLP/HTTP). FastMCP emits spans through the OTel API; this extra
+# supplies the SDK + exporter, enabled by the standard OTEL_* variables. uv sync --extra observability
+observability = [
+  "opentelemetry-sdk>=1.30",
+  "opentelemetry-exporter-otlp-proto-http>=1.30",
 ]
 # Per-connector live SDKs. Only needed to run a connector's live backend (smoke-gated
 # `live` tests); the core + mocked suite need none of these. Install with: uv sync --extra connectors
