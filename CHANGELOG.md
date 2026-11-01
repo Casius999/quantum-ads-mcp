@@ -3,6 +3,19 @@
 All notable changes to Quantum ADS MCP are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/);
 SemVer.
 
+## [0.3.1](https://github.com/Casius999/quantum-ads-mcp/compare/v0.3.0...v0.3.1) (2026-11-01)
+
+
+### Bug Fixes
+
+* **audit:** persist, timestamp and hash-chain the signed audit ledger ([be4360d](https://github.com/Casius999/quantum-ads-mcp/commit/be4360d153c79d0da99a9003ced334da2d8295af))
+* wire every connector backend in the stdio entrypoint ([bc153ed](https://github.com/Casius999/quantum-ads-mcp/commit/bc153ed2d46f0c2f4e1171d0c875962484a96dc5))
+
+
+### Documentation
+
+* rewrite the skill and config for November 2026 and all connectors ([d1446fc](https://github.com/Casius999/quantum-ads-mcp/commit/d1446fc29055abf3334dd7c8054ab46a24d4afdb))
+
 ## [0.3.0](https://github.com/Casius999/quantum-ads-mcp/compare/v0.2.0...v0.3.0) (2026-11-01)
 
 
