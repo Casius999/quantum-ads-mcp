@@ -43,6 +43,7 @@ from .core.observability.middleware import ObservabilityMiddleware
 from .core.observability.recorder import CallRecorder
 from .core.registry.registry import Capability, ConnectorRegistry, ToolSpec
 from .core.safety.audit import AuditLedger
+from .core.safety.audit_tools import register_audit_tools
 from .core.safety.mode import SafetyMode
 from .core.tenancy import TenantDirectory
 from .core.versioning.version_manager import DEFAULT_API_VERSION, VersionManager
@@ -177,20 +178,11 @@ def _register_core(app: FastMCP, ctx: ServerContext, recorder: CallRecorder) -> 
     def describe_tool(name: str) -> dict[str, object]:
         return describe_tool_payload(registry, name)
 
-    def audit_status() -> dict[str, object]:
-        return ctx.audit.status()
-
     add_tool(app, "health", "Server + Google Ads API version health.", health)
     add_tool(
         app, "list_capabilities", "List connector capabilities and their tools.", list_capabilities
     )
     add_tool(app, "describe_tool", "Describe a registered tool by name.", describe_tool)
-    add_tool(
-        app,
-        "audit.status",
-        "Signed audit ledger: persistence, path, chain verification, public key.",
-        audit_status,
-    )
     registry.register(
         Capability(
             connector="core",
@@ -201,13 +193,10 @@ def _register_core(app: FastMCP, ctx: ServerContext, recorder: CallRecorder) -> 
                     name="list_capabilities", summary="List connector capabilities and tools."
                 ),
                 ToolSpec(name="describe_tool", summary="Describe a registered tool by name."),
-                ToolSpec(
-                    name="audit.status",
-                    summary="Signed audit ledger: persistence, path, chain verification, public key.",
-                ),
             ],
         )
     )
+    register_audit_tools(app, ctx)
 
 
 def _operator_ads_creds(env: Mapping[str, str]) -> dict[str, object]:

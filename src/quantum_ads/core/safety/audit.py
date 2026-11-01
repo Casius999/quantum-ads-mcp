@@ -176,6 +176,11 @@ class AuditLedger:
             expected = record.digest
         return {"ok": True, "records": len(self.records), "first_bad_index": None}
 
+    @property
+    def directory(self) -> Path | None:
+        """Where a persistent ledger lives (None for an in-memory ledger)."""
+        return self._log_path.parent if self._log_path is not None else None
+
     def public_key_pem(self) -> str:
         return self._pk.public_bytes(
             serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo

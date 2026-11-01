@@ -92,3 +92,20 @@ def test_confirmed_write_over_mcp_lands_in_the_persistent_chain(tmp_path: Path):
     line = (tmp_path / "audit.jsonl").read_text(encoding="utf-8").strip()
     assert '"op":"gtm.create_tag"' in line
     assert '"ts":"1970' not in line  # real timestamp, not the old placeholder
+
+
+def test_anchor_tools_are_registered_and_explain_an_in_memory_ledger():
+    assembled = build_server(env=_ENV, stream_factory=_stream, connectors=[])
+    assert {"audit.anchor", "audit.anchor_status"} <= {
+        t.name for cap in assembled.registry.list_capabilities() for t in cap.tools
+    }
+
+    async def scenario() -> dict[str, object]:
+        async with Client(assembled.app) as client:
+            result = await client.call_tool("audit.anchor", {})
+            assert isinstance(result.structured_content, dict)
+            return result.structured_content
+
+    error = asyncio.run(scenario())["error"]
+    assert isinstance(error, dict) and error["code"] == "ANCHOR_FAILED"
+    assert "persistent" in str(error["message"])
