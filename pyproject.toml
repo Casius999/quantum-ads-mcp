@@ -7,8 +7,8 @@ requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [{ name = "Julien Compain" }]
 dependencies = [
-  "fastmcp>=2.9",
-  "mcp>=1.9",
+  "fastmcp>=3.4,<4",
+  "mcp>=1.27,<2",
   "google-ads>=27",
   "pydantic>=2.7,<3",
   "cryptography>=42",
@@ -30,7 +30,7 @@ connectors = [
   "google-api-python-client>=2.130",
   "google-auth-oauthlib>=1.2",
   "google-cloud-bigquery>=3.20",
-  "google-cloud-aiplatform>=1.60",
+  "google-cloud-aiplatform>=1.60,<2",
   "google-cloud-translate>=3.15",
   "google-cloud-language>=2.13",
   "google-cloud-recaptcha-enterprise>=1.21",
