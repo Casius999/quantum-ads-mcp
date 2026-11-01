@@ -9,13 +9,17 @@ quantum-ads-mcp token --tenant acme     mint an access token signed by the local
 from __future__ import annotations
 
 import argparse
+import logging
 import os
 import sys
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
+from typing import Any
 
 from .backends import build_backends
 from .connectors.google_ads.sdk import default_mutate_factory, default_stream_factory
+from .core.observability.recorder import CallRecorder
+from .core.observability.tracing import configure_tracing
 from .core.remote.http import (
     RemoteConfig,
     build_auth,
@@ -37,27 +41,40 @@ def runtime_env(environ: Mapping[str, str]) -> dict[str, str]:
     return {"QUANTUM_ADS_AUDIT_DIR": str(DEFAULT_AUDIT_DIR), **environ}
 
 
+def call_log_sink(env: Mapping[str, str]) -> Callable[[str], None] | None:
+    """One JSON line per tool call on stderr (stdout carries the stdio protocol), unless disabled."""
+    if (env.get("QUANTUM_ADS_LOG_CALLS") or "true").lower() == "false":
+        return None
+    logger = logging.getLogger("quantum_ads.calls")
+    if not logger.handlers:
+        handler = logging.StreamHandler(sys.stderr)
+        handler.setFormatter(logging.Formatter("%(message)s"))
+        logger.addHandler(handler)
+        logger.setLevel(logging.INFO)
+        logger.propagate = False
+    return logger.info
+
+
 def assemble(env: Mapping[str, str], remote: RemoteConfig | None = None) -> AssembledServer:
-    """The production server: every backend wired; auth + tenancy when serving remotely."""
+    """The production server: every backend wired, observed; auth + tenancy when remote."""
+    configure_tracing(env)
+    common: dict[str, Any] = {
+        "env": env,
+        "stream_factory": default_stream_factory,
+        "connectors": DEFAULT_CONNECTORS,
+        "mutate_factory": default_mutate_factory,
+        "backends": build_backends(env),
+        "recorder": CallRecorder(sink=call_log_sink(env)),
+    }
     if remote is None:
-        return build_server(
-            env=env,
-            stream_factory=default_stream_factory,
-            connectors=DEFAULT_CONNECTORS,
-            mutate_factory=default_mutate_factory,
-            backends=build_backends(env),
-        )
+        return build_server(**common)
     tenants = (
         TenantDirectory.from_file(remote.tenants_file, build_backends)
         if remote.tenants_file
         else None
     )
     return build_server(
-        env=env,
-        stream_factory=default_stream_factory,
-        connectors=DEFAULT_CONNECTORS,
-        mutate_factory=default_mutate_factory,
-        backends=build_backends(env),
+        **common,
         auth=build_auth(remote),
         middleware=remote_middleware(remote, tenants),
         tenants=tenants,
