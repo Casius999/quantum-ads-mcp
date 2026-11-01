@@ -33,6 +33,7 @@ from .connectors.sa360 import register_sa360
 from .connectors.searchconsole import register_searchconsole
 from .connectors.trends import register_trends
 from .connectors.vertex import register_vertex
+from .connectors.video import register_video
 from .connectors.workspace import register_workspace
 from .connectors.youtube import register_youtube
 from .core.auth.secret_store import EnvSecretStore
@@ -61,6 +62,7 @@ DEFAULT_CONNECTORS: list[Connector] = [
     register_sa360,
     register_bigquery,
     register_vertex,
+    register_video,
     register_trends,
     register_gbp,
     register_looker,
@@ -88,6 +90,7 @@ _CONNECTOR_BY_NAME: dict[str, list[Connector]] = {
     "sa360": [register_sa360],
     "bigquery": [register_bigquery],
     "vertex": [register_vertex],
+    "video": [register_video],
     "trends": [register_trends],
     "gbp": [register_gbp],
     "looker": [register_looker],

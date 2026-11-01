@@ -7,7 +7,8 @@ connector's ``sdk.py`` factory and builds the set the environment can actually s
 - Google connectors share one OAuth user credential (``GOOGLE_OAUTH_*``, falling back to the
   ``GOOGLE_ADS_*`` client + refresh token) and, where the API is a GCP one, ``GOOGLE_CLOUD_PROJECT``
   (billing / quota project).
-- Looker uses its own API3 credentials (``LOOKERSDK_*``); Trends and Meridian need none.
+- Looker uses its own API3 credentials (``LOOKERSDK_*``); Trends and Meridian need none; free
+  video (Hugging Face Spaces) needs none but uses ``HF_TOKEN`` when set for a larger quota.
 
 Backends are **lazy**: nothing is imported, built or authenticated at startup (an auth failure in
 one connector must not take the whole server down). The real backend is built on first call and
@@ -26,6 +27,7 @@ _OAUTH = "oauth"  # Google OAuth user credential
 _PROJECT = "project"  # Google OAuth + a GCP project
 _LOOKER = "looker"  # Looker API3 credentials
 _NONE = "none"  # no credentials (public / local library)
+_HF = "huggingface"  # public Spaces; an optional free HF_TOKEN raises the quota
 
 
 @dataclass(frozen=True)
@@ -76,6 +78,7 @@ BACKENDS: dict[str, BackendSpec] = {
     "looker.mutate": BackendSpec("looker", "mutate_factory", _LOOKER),
     "trends.api": BackendSpec("trends", "read_factory", _NONE),
     "meridian.api": BackendSpec("meridian", "mmm_read_factory", _NONE),
+    "video.free": BackendSpec("video", "free_video_factory", _HF),
 }
 
 _INSTALL_HINT = "install the connector SDKs: `uv sync --extra connectors`"
@@ -118,6 +121,9 @@ def _creds_for(needs: str, env: Mapping[str, str]) -> dict[str, object] | None:
     """Credentials for one requirement class, or None when the environment cannot serve it."""
     if needs == _NONE:
         return {}
+    if needs == _HF:
+        token = env.get("HF_TOKEN") or env.get("HUGGING_FACE_HUB_TOKEN")
+        return {"hf_token": token} if token else {}
     if needs == _LOOKER:
         url, cid, secret = (
             env.get(f"LOOKERSDK_{k}") for k in ("BASE_URL", "CLIENT_ID", "CLIENT_SECRET")
