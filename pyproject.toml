@@ -26,6 +26,7 @@ dependencies = [
   "google-ads>=27",
   "pydantic>=2.7,<3",
   "cryptography>=42",
+  "joserfc>=1.7",  # local OAuth token issuer (Ed25519 JWTs); also used by fastmcp
 ]
 
 [project.optional-dependencies]

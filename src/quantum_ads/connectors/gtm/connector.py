@@ -108,15 +108,13 @@ def register_gtm(app: FastMCP, ctx: ServerContext) -> None:
     ]
 
     # --- write tools (backend: gtm.mutate, guarded) ---
-    holder: dict[str, WriteExecutor] = {}
 
     def executor() -> WriteExecutor | None:
         backend = ctx.backend(_MUTATE_BACKEND)
         if backend is None:
             return None
-        if "ex" not in holder:
-            holder["ex"] = WriteExecutor(cast(MutateFn, backend), ctx.safety, ctx.audit)
-        return holder["ex"]
+        # Built per call: the backend is resolved for the request tenant.
+        return WriteExecutor(cast(MutateFn, backend), ctx.safety, ctx.audit)
 
     def gtm_create_tag(
         workspace_path: str,

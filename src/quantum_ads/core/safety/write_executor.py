@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
+from ..tenancy import current_principal
 from .audit import AuditLedger
 from .confirm import confirm_token, matches
 from .mode import MutationBlocked, SafetyMode
@@ -46,5 +47,7 @@ class WriteExecutor:
                 "message": "re-call with confirm=<confirm_token> to apply",
             }
         result = self._mutate(customer_id, operations, False)
-        record = self._audit.append(actor="default", op=op, payload=payload)
+        principal = current_principal()
+        actor = principal.actor if principal is not None else "default"
+        record = self._audit.append(actor=actor, op=op, payload=payload)
         return {"applied": True, "result": result, "audit_signature": record.signature.hex()}

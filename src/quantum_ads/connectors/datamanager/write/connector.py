@@ -37,15 +37,13 @@ _NOT_CONFIGURED: dict[str, object] = {
 
 
 def register_datamanager_write(app: FastMCP, ctx: ServerContext) -> None:
-    holder: dict[str, WriteExecutor] = {}
 
     def executor() -> WriteExecutor | None:
         backend = ctx.backend(BACKEND_KEY)
         if backend is None:
             return None
-        if "ex" not in holder:
-            holder["ex"] = WriteExecutor(cast(MutateFn, backend), ctx.safety, ctx.audit)
-        return holder["ex"]
+        # Built per call: the backend is resolved for the request tenant.
+        return WriteExecutor(cast(MutateFn, backend), ctx.safety, ctx.audit)
 
     def datamanager_audience_upload_members(
         destination_id: str,

@@ -26,15 +26,13 @@ _BACKEND_NOT_CONFIGURED: dict[str, object] = {
 
 
 def register_ga4_write(app: FastMCP, ctx: ServerContext) -> None:
-    holder: dict[str, WriteExecutor] = {}
 
     def executor() -> WriteExecutor | None:
         backend = ctx.backend("ga4.admin.mutate")
         if backend is None:
             return None
-        if "ex" not in holder:
-            holder["ex"] = WriteExecutor(_cast(MutateFn, backend), ctx.safety, ctx.audit)
-        return holder["ex"]
+        # Built per call: the backend is resolved for the request tenant.
+        return WriteExecutor(_cast(MutateFn, backend), ctx.safety, ctx.audit)
 
     def ga4_admin_create_key_event(
         property_id: str, event_name: str, confirm: str | None = None
