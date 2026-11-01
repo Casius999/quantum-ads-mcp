@@ -3,6 +3,40 @@
 All notable changes to Quantum ADS MCP are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/);
 SemVer.
 
+## [0.3.0](https://github.com/Casius999/quantum-ads-mcp/compare/v0.2.0...v0.3.0) (2026-11-01)
+
+
+### Features
+
+* **dv360,cm360,sa360,adh,gbp:** quota routing + reachability live suites ([a0b6ae3](https://github.com/Casius999/quantum-ads-mcp/commit/a0b6ae34d22e47311deb6b9d1608bdc30c29bf77))
+* **google_ads:** tool-boundary error handling + exhaustive live conformance (8/8) ([0eb8808](https://github.com/Casius999/quantum-ads-mcp/commit/0eb880880e2586a8722e99dbe6e8fccf6b7169c8))
+* **google-ads:** pin API v26 (latest, sunset 2027-11), GAQL field conformance, version_delta tool ([dfc8fe7](https://github.com/Casius999/quantum-ads-mcp/commit/dfc8fe778436775abc0987428980839740acea2d))
+* **merchant,vertex:** wire real auth + install merchant SDK + broaden validation scopes ([b9b5a36](https://github.com/Casius999/quantum-ads-mcp/commit/b9b5a36d982ab8cc818189f3290d324a0cb997e8))
+* migrate to fastmcp 4 / MCP Python SDK 2 (protocol 2026-07-28); lazy Ads client ([c38479a](https://github.com/Casius999/quantum-ads-mcp/commit/c38479aa1f46cd30650ef679bd70483794047fb9))
+* **vertex:** full REST client, current GA models, Veo polling, catalog conformance; drop aiplatform ([a81e61e](https://github.com/Casius999/quantum-ads-mcp/commit/a81e61e1653c73ecd2cf15ef4d2f5678b0599ab1))
+* **vertex:** migrate Gemini to REST generateContent on the global endpoint (live-green) ([64c9cb3](https://github.com/Casius999/quantum-ads-mcp/commit/64c9cb3857ff11a87716a7f776da28c48b7bb2e2))
+
+
+### Bug Fixes
+
+* **bigquery,language:** OAuth creds wiring proven by live conformance ([1876bb5](https://github.com/Casius999/quantum-ads-mcp/commit/1876bb54dccfd7802a3f352ffcf5c3a88579afaa))
+* **datamanager,meridian:** correct fictional endpoints/classes (conformance + isolated-venv check) ([7352216](https://github.com/Casius999/quantum-ads-mcp/commit/7352216a1c7be138d71c6fe2f3d10feb1ea42218))
+* **ga4:** lazy-import Audience on the real-create path (was undefined after removing top import) ([26348f9](https://github.com/Casius999/quantum-ads-mcp/commit/26348f9e13867b9a2ae24f59ee41d3156c0e3cfa))
+* **ga4:** list_properties via request object + lazy admin type imports + quota_project_id routing ([095f15d](https://github.com/Casius999/quantum-ads-mcp/commit/095f15d345fa65c6fa2f2f31c64e4c8fcde771dd))
+* **google_ads:** set validate_only on the mutate request object (google-ads 31) ([d288d30](https://github.com/Casius999/quantum-ads-mcp/commit/d288d302645854c8fef53a21765f040a4adf7317))
+* **gtm,searchconsole,youtube:** quota routing + read scope, proven by live conformance ([49d12e4](https://github.com/Casius999/quantum-ads-mcp/commit/49d12e4f95f0dc0d219d72e37d0538d4ac2a28f7))
+* **recaptcha:** quota_project_id routing + add live conformance (recaptcha, trends) + results doc ([a79556f](https://github.com/Casius999/quantum-ads-mcp/commit/a79556fce099f464d03b41bdd7279a6cb8f4326f))
+* **vertex,adh,gbp:** live construction bugs + tolerant reachability harness ([2295419](https://github.com/Casius999/quantum-ads-mcp/commit/229541926e45103e00dedcfb8444ace0475380a2))
+* **youtube:** remove non-existent videos.batchGetStats endpoint ([d206499](https://github.com/Casius999/quantum-ads-mcp/commit/d2064993c04569791b6fc4d64384a82bcd7bdacc))
+
+
+### Documentation
+
+* add SVG hero banner + centered README header with live CI/CodeQL/Scorecard badges ([c008f8b](https://github.com/Casius999/quantum-ads-mcp/commit/c008f8bf3f14141025bd0551fcb1aea9929e341a))
+* merchant + vertex now live-green (programmatic unlocks) ([291fd0c](https://github.com/Casius999/quantum-ads-mcp/commit/291fd0c9d5bb87ed5eb87efcbafc470366871d53))
+* Nov 2026 refresh — v26, fastmcp 4 / MCP 2026-07-28, Vertex REST, live results ([8ea5b7c](https://github.com/Casius999/quantum-ads-mcp/commit/8ea5b7ce6f651a98c22dd82004148ca75b449b7a))
+* SOTA governance + community health + devex + ADRs + architecture diagram ([026a87c](https://github.com/Casius999/quantum-ads-mcp/commit/026a87cc78cb9c8950eb9ce6637147b717378d9e))
+
 ## [0.2.0] - 2026-06-09 — Full agency control plane (19 connectors)
 
 ### Added
