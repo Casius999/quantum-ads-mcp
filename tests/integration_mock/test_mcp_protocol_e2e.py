@@ -100,3 +100,31 @@ def test_unwired_backend_returns_structured_error_not_protocol_error():
     out = _run(scenario)
     assert isinstance(out, dict)
     assert out["error"]["code"] == "BACKEND_NOT_CONFIGURED"
+
+
+def _broken_stream_factory(creds: dict[str, object], version: str) -> StreamFn:
+    # Mirrors the real factory with missing/invalid Google Ads creds: building the client
+    # authenticates (token refresh) and fails.
+    raise RuntimeError("invalid_client: The OAuth client was not found.")
+
+
+def test_server_starts_and_serves_even_when_google_ads_auth_fails():
+    # Building the Google Ads client must not happen at startup: bad Ads creds would otherwise
+    # crash the whole server (every other connector with it) before it can answer anything.
+    assembled = build_server(env=_env(), stream_factory=_broken_stream_factory)
+
+    async def scenario() -> object:
+        async with Client(assembled.app) as client:
+            assert _payload(await client.call_tool("health", {}))
+            result = await client.call_tool(
+                "ads.gaql.query",
+                {"customer_id": "1", "query": "SELECT customer.id FROM customer"},
+                raise_on_error=False,
+            )
+            assert not getattr(result, "is_error", False), result
+            return _payload(result)
+
+    out = _run(scenario)
+    assert isinstance(out, dict)
+    assert out["error"]["code"] == "RuntimeError"
+    assert "invalid_client" in out["error"]["message"]
