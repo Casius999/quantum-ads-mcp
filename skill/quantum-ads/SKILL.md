@@ -1,6 +1,6 @@
 ---
 name: quantum-ads
-description: Use when operating the Quantum ADS MCP server — a sovereign Google marketing-agency control plane exposing 129 tools across 21 connectors (Ads API v26, GA4, GTM, Merchant, Data Manager, Search Console, YouTube, DV360/CM360/SA360, ADH, Business Profile, Workspace, BigQuery, Looker, Vertex AI, free text-to-video, Trends, Meridian, Language, reCAPTCHA), over stdio or OAuth 2.1-protected multi-tenant HTTP. Covers env-var auth per connector, remote serving, the generated tool catalog, GAQL recipes/payloads, version discipline (Nov 2026), and the guarded write / spend / honesty guardrails.
+description: Use when operating the Quantum ADS MCP server — a sovereign Google marketing-agency control plane exposing 131 tools across 21 connectors (Ads API v26, GA4, GTM, Merchant, Data Manager, Search Console, YouTube, DV360/CM360/SA360, ADH, Business Profile, Workspace, BigQuery, Looker, Vertex AI, free text-to-video, Trends, Meridian, Language, reCAPTCHA), over stdio or OAuth 2.1-protected multi-tenant HTTP. Covers env-var auth per connector, remote serving, the generated tool catalog, GAQL recipes/payloads, version discipline (Nov 2026), and the guarded write / spend / honesty guardrails.
 ---
 
 # Quantum ADS — Google marketing agency control plane (MCP, November 2026)
@@ -61,9 +61,10 @@ subset), `QUANTUM_ADS_AUDIT_DIR` (audit ledger location; empty = in memory). Rem
 `references/auth-and-guardrails.md`. Full matrix + secret hygiene: same file.
 
 ## Tool catalog
-- **Meta:** `health`, `list_capabilities`, `describe_tool`, `audit.status` — call
-  `list_capabilities` first.
-- Full generated list (129 tools, read vs guarded write): `references/tool-catalog.md`.
+- **Meta:** `health` (incl. call counters), `list_capabilities`, `describe_tool` — call
+  `list_capabilities` first. **Audit:** `audit.status`, `audit.anchor` (Bitcoin via
+  OpenTimestamps), `audit.anchor_status`.
+- Full generated list (131 tools, read vs guarded write): `references/tool-catalog.md`.
 - GAQL recipes + payload patterns: `references/gaql-and-payloads.md`.
 
 ## Guardrails (always)

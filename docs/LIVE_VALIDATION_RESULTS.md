@@ -6,7 +6,23 @@ broad-scope OAuth token. The suite lives under `tests/live_smoke/` and runs with
 mutated. The only billable calls are one short Gemini text and one Gemini image generation
 (a few cents); Veo video generation is opt-in (`VERTEX_LIVE_VEO=1`, several USD per clip).
 
-## 2026-11-01 — Google Ads v26 live, OAuth 2.1 HTTP, free video (current)
+## 2026-11-01 — hardening wave (current)
+
+| Check | Result |
+|-------|--------|
+| Live suite (`pytest -m live`) | **67 passed · 7 skipped · 0 failed** |
+| Trends | 5/5 live — `trending_now` moved from pytrends' removed endpoint (HTTP 404) to the public Trending-now RSS feed |
+| BigQuery | 5/5 live, incl. `tables.list` (empty `quantum_ads_smoke` dataset) |
+| Tenant map from Google Secret Manager | live read of a synthetic map (`quantum-ads-tenants-smoke`) |
+| Audit anchoring (OpenTimestamps) | real submission through the shipped stdio server: 3/3 calendars, `.ots` proof deserializes in a clean environment and commits to the statement SHA-256; Bitcoin confirmation follows within hours |
+| Observability | shipped stdio server: one JSON line per call on stderr, `health` counters; spans with `quantum_ads.tenant` received by a local OTLP collector |
+| Unit / integration (`-m "not live"`) | 597 passed, mypy --strict clean |
+
+The 7 skips are outside the project's reach or deliberately opt-in: 3 enterprise reads gated
+externally (ADH, CM360, GBP — no account), DV360 (no partner), Google Ads `set_status` (no
+campaign in either accessible account), Veo (paid), free video (daily quota spent).
+
+## 2026-11-01 — Google Ads v26 live, OAuth 2.1 HTTP, free video
 
 | Check | Result |
 |-------|--------|

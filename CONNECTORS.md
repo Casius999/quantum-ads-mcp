@@ -28,7 +28,7 @@ lives in each connector's `sdk.py` (smoke-gated, not unit-tested). Enable a subs
 | **adh** | `adh.customers.list`, `adh.queries.list`, `adh.query.start`, `adh.jobs.get`, `adh.query.create` (privacy-safe aggregated SQL) | `adh.api`, `adh.mutate` | `google-api-python-client` (adsdatahub v1) |
 | **vertex** | `vertex.gemini.generate`, `vertex.imagen.generate` (images, base64), `vertex.veo.generate`, `vertex.veo.status`, `vertex.gemini.generate_ad_copy` | `vertex.api` | none — direct Vertex REST (`google-auth` only) |
 | **video** | `video.generate` (free text-to-video: Wan 2.2 → LTX-Video, mp4 path + optional base64, `QUOTA_EXHAUSTED` when the free GPU quota is spent) | `video.free` | `gradio_client` (Hugging Face ZeroGPU Spaces; optional free `HF_TOKEN`) |
-| **trends** | `trends.interest_over_time`, `trends.related_queries`, `trends.trending_now`, `trends.interest_by_region` | `trends.api` | `pytrends` (unofficial) |
+| **trends** | `trends.interest_over_time`, `trends.related_queries`, `trends.trending_now`, `trends.interest_by_region` | `trends.api` | `pytrends` (unofficial) + the public Trending-now RSS feed for `trending_now` |
 | **gbp** | `gbp.accounts.list`, `gbp.locations.list`, `gbp.location.get`, `gbp.performance.fetch`, `gbp.reviews.list` (allowlist), `gbp.review.reply`, `gbp.location.update` | `gbp.api`, `gbp.reviews`, `gbp.mutate` | `google-api-python-client` (mybusiness v1 + v4 reviews) |
 | **looker** | `looker.dashboards.list`, `looker.looks.list`, `looker.look.run`, `looker.query.run`, `looker.dashboard.create` | `looker.api`, `looker.mutate` | `looker_sdk` |
 | **meridian** | `meridian.model.summary`, `meridian.roi.by_channel`, `meridian.budget.optimize`, `meridian.fit` | `meridian.api` | `google-meridian` |
