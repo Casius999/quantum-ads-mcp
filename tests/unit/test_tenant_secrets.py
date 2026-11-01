@@ -79,3 +79,46 @@ def test_secret_payload_decoding():
     assert decode_payload({"payload": {"data": encoded}}) == '{"tenants": {}}'
     with pytest.raises(SecretSourceError, match="payload"):
         decode_payload({})
+
+
+class _Response:
+    def __init__(self, payload: dict[str, object]) -> None:
+        self._body = json.dumps(payload).encode()
+
+    def read(self) -> bytes:
+        return self._body
+
+    def __enter__(self) -> _Response:
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        return None
+
+
+def test_operator_token_and_secret_access_send_the_right_requests(monkeypatch):  # type: ignore[no-untyped-def]
+    from quantum_ads.core.remote import secrets
+
+    seen: list[object] = []
+
+    def fake_urlopen(request, data=None, timeout=None):  # type: ignore[no-untyped-def]
+        seen.append(request if data is None else (request, data))
+        if data is not None:
+            return _Response({"access_token": "at-123"})
+        encoded = base64.b64encode(json.dumps(_TENANTS).encode()).decode()
+        return _Response({"payload": {"data": encoded}})
+
+    monkeypatch.setattr(secrets.urllib.request, "urlopen", fake_urlopen)
+    assert secrets.operator_access_token(_OPERATOR) == "at-123"
+    text = secrets.access_secret("projects/p/secrets/t/versions/latest", "at-123", "ops-project")
+    assert json.loads(text) == _TENANTS
+    request = seen[-1]
+    assert request.full_url.endswith("/projects/p/secrets/t/versions/latest:access")  # type: ignore[attr-defined]
+    assert request.get_header("Authorization") == "Bearer at-123"  # type: ignore[attr-defined]
+    assert request.get_header("X-goog-user-project") == "ops-project"  # type: ignore[attr-defined]
+
+
+def test_operator_token_requires_credentials():
+    from quantum_ads.core.remote.secrets import operator_access_token
+
+    with pytest.raises(SecretSourceError, match="GOOGLE_OAUTH"):
+        operator_access_token({})
