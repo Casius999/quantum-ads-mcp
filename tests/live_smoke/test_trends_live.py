@@ -33,3 +33,24 @@ def test_trends_trending_now_live():
     except Exception as exc:  # noqa: BLE001
         pytest.skip(f"pytrends unavailable: {type(exc).__name__}")
     assert isinstance(rows, list)
+
+
+def test_trends_related_queries_live():
+    try:
+        rows = _read()("related_queries", {"keyword": "coffee", "geo": ""})
+    except Exception as exc:  # noqa: BLE001
+        pytest.skip(f"pytrends unavailable: {type(exc).__name__}")
+    assert isinstance(rows, list)
+
+
+def test_trends_interest_by_region_live():
+    try:
+        rows = _read()("interest_by_region", {"keyword": "coffee", "resolution": "COUNTRY"})
+    except Exception as exc:  # noqa: BLE001
+        pytest.skip(f"pytrends unavailable: {type(exc).__name__}")
+    assert isinstance(rows, list) and rows
+
+
+def test_trends_trending_now_rss_shape_live():
+    rows = _read()("trending_now", {"geo": "FR"})  # public RSS feed: must not need a skip
+    assert rows and {"rank", "query", "approx_traffic", "pub_date", "news"} <= set(rows[0])
