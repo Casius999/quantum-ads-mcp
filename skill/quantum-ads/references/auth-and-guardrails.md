@@ -49,7 +49,8 @@ single-tenant from the environment.
 | `QUANTUM_ADS_OAUTH_PUBLIC_KEY_FILE` | or verify tokens minted by the built-in Ed25519 issuer (`keygen` / `token`) |
 | `QUANTUM_ADS_PUBLIC_URL`, `QUANTUM_ADS_HTTP_PATH` | public base URL + path (default `/mcp`); the token `aud` must be `<url><path>` unless `QUANTUM_ADS_OAUTH_AUDIENCE` is set |
 | `QUANTUM_ADS_OAUTH_AUTHORIZATION_SERVERS` | authorization servers advertised in RFC 9728 metadata (default: the issuer, IdP mode only) |
-| `QUANTUM_ADS_TENANTS_FILE` | `{"tenants": {"<id>": {<same GOOGLE_* variables as .env>}}}`; absent = single tenant `default` on the operator env |
+| `QUANTUM_ADS_TENANTS_SECRET` | Google Secret Manager secret holding the tenant map (name, `projects/p/secrets/s`, or a pinned version); read at startup with the operator OAuth credential (`cloud-platform` scope, `secretmanager.secretAccessor`) |
+| `QUANTUM_ADS_TENANTS_FILE` | or the same map in a file: `{"tenants": {"<id>": {<same GOOGLE_* variables as .env>}}}`; neither = single tenant `default` on the operator env |
 | `QUANTUM_ADS_TENANT_CLAIM` | token claim naming the tenant (default `tenant`) |
 | `QUANTUM_ADS_HTTP_HOST` / `_PORT`, `QUANTUM_ADS_ALLOWED_HOSTS` / `_ORIGINS` | bind address (default 127.0.0.1:8000) and Host/Origin allow-lists behind a proxy |
 | `QUANTUM_ADS_RATE_LIMIT_RPS` | per-tenant token-bucket rate (default 10/s) |
@@ -75,6 +76,11 @@ single-tenant from the environment.
   `audit_ed25519.pem` (created once, mode 0600) under `QUANTUM_ADS_AUDIT_DIR`, default
   `~/.quantum-ads/audit`; set it empty to keep the ledger in memory. `audit.status` returns the
   path, record count, chain verification (first bad index) and the public key for external checks.
+- **Anchoring:** `audit.anchor` publishes the chain head's statement hash to public
+  OpenTimestamps calendars (Bitcoin); the `.ots` proof lands in `<audit dir>/anchors/`;
+  `audit.anchor_status` upgrades and reports block heights. Over HTTP it needs `ads:write`.
+- **Observability:** one JSON line per call on stderr (no arguments/results), counters in
+  `health`, OpenTelemetry spans with the tenant; OTLP export via `OTEL_EXPORTER_OTLP_*`.
 - **Cost:** Vertex generation and BigQuery scans bill the project — use BigQuery `dry_run`, keep
   Gemini calls small, ask before Veo (several USD per clip).
 - **Version discipline:** `health` reports the pinned Ads version and days until its sunset and

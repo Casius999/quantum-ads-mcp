@@ -17,7 +17,7 @@
 
 **The most complete open Model Context Protocol control plane for the Google marketing stack** — 21 connectors, read + guarded write, Ed25519 signed audit, OAuth 2.1 multi-tenant.
 
-[Architecture](#architecture) · [The 21 connectors](#the-21-connectors) · [Install](#install) · [Configure](#configure) · [Safety](#safety--honest-claims) · [Roadmap](#roadmap)
+[Architecture](#architecture) · [The 21 connectors](#the-21-connectors) · [Install](#install) · [Configure](#configure) · [Safety](#safety--honest-claims) · [Observability](#observability) · [Roadmap](#roadmap)
 
 </div>
 
@@ -89,7 +89,7 @@ Full tool catalog, backend keys, and required SDK packages: **[CONNECTORS.md](CO
 git clone https://github.com/Casius999/quantum-ads-mcp.git
 cd quantum-ads-mcp
 uv sync --extra dev
-uv run pytest -m "not live"      # 570+ tests, no credentials needed
+uv run pytest -m "not live"      # 590+ tests, no credentials needed
 ```
 
 Per-connector live SDKs (e.g. `google-analytics-data`, `google-api-python-client`,
@@ -147,7 +147,8 @@ quantum-ads-mcp keygen                               # prints QUANTUM_ADS_OAUTH_
 quantum-ads-mcp token --tenant acme --scope "ads:read ads:write" --ttl 3600
 
 # Multi-tenant: one credential set per tenant, selected by the token's `tenant` claim.
-QUANTUM_ADS_TENANTS_FILE=tenants.json   # {"tenants": {"acme": {"GOOGLE_ADS_...": "..."}}}
+QUANTUM_ADS_TENANTS_SECRET=quantum-ads-tenants   # Google Secret Manager (recommended), or
+QUANTUM_ADS_TENANTS_FILE=tenants.json            # {"tenants": {"acme": {"GOOGLE_ADS_...": "..."}}}
 ```
 
 With an external identity provider the server publishes Protected Resource Metadata (RFC 9728)
@@ -165,11 +166,32 @@ resilience**, each verifiable — *not* "record ad performance" (that depends on
 and Google's auction, not the server). Documentation states only what the test suite proves; the
 per-product live SDK calls are smoke-gated and labelled as such.
 
+## Observability
+
+Every tool call writes one JSON line to stderr — tool, tenant, outcome, error code, duration,
+trace id; never arguments or results — and `health` reports call counters. FastMCP's
+OpenTelemetry spans carry `quantum_ads.tenant` / `outcome` / `error_code` and are exported over
+OTLP when the standard variables are set (`uv sync --extra observability`):
+
+```bash
+OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4318   # or OTEL_TRACES_EXPORTER=console (stderr)
+OTEL_SERVICE_NAME=quantum-ads-mcp                   # default
+QUANTUM_ADS_LOG_CALLS=false                         # silence the per-call JSON lines
+```
+
+## Audit anchoring
+
+The audit ledger is signed and hash-chained; `audit.anchor` additionally publishes its head to
+Bitcoin through public OpenTimestamps calendars (only a SHA-256 leaves the machine) and saves a
+standard `.ots` proof under `<audit dir>/anchors/`, verifiable by anyone with `ots verify`.
+`audit.anchor_status` upgrades pending proofs once Bitcoin confirms them
+(`uv sync --extra anchoring`).
+
 ## Roadmap
 
-Observability (structured logging + tracing) · optional external anchoring of the signed audit
-ledger · a cloud secret-manager backend for the tenant credential file. (Done: the live-API
-conformance suite in `tests/live_smoke/`, and the OAuth 2.1 multi-tenant HTTP transport.)
+Open items need resources the project cannot create on its own: enterprise accounts for the ADH,
+CM360, Business Profile and DV360 live checks, and a Google Ads campaign to validate
+`ads.campaign.set_status` against. Paid Veo generation stays opt-in (`VERTEX_LIVE_VEO=1`).
 
 ## License
 
