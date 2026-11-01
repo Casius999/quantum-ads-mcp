@@ -40,6 +40,10 @@ dev = [
 ]
 # OpenTelemetry trace export (OTLP/HTTP). FastMCP emits spans through the OTel API; this extra
 # supplies the SDK + exporter, enabled by the standard OTEL_* variables. uv sync --extra observability
+# Bitcoin anchoring of the audit chain head via public OpenTimestamps calendars.
+anchoring = [
+  "opentimestamps>=0.5",
+]
 observability = [
   "opentelemetry-sdk>=1.30",
   "opentelemetry-exporter-otlp-proto-http>=1.30",
@@ -100,7 +104,7 @@ module = [
   "google.analytics.*", "google.cloud.*", "googleapiclient.*",
   "google_auth_oauthlib.*", "google.oauth2.*", "google.auth.*",
   "google.shopping.*", "pytrends.*",
-  "looker_sdk.*", "meridian.*", "gradio_client.*",
+  "looker_sdk.*", "meridian.*", "gradio_client.*", "opentimestamps.*",
 ]
 ignore_missing_imports = true
 
