@@ -11,8 +11,9 @@ The server is an OAuth 2.1 *resource server* (MCP authorization spec):
 - ``PrincipalMiddleware`` turns the verified token into a ``Principal`` (tenant from the
   configured claim, subject, scopes) for the duration of each tool call, so backends, the Ads
   client, the write guard (``ads:write``) and the audit actor all resolve per tenant;
-- ``QUANTUM_ADS_TENANTS_FILE`` lists each tenant's credentials; without it the server is
-  single-tenant (tenant ``default``) on the operator's environment.
+- ``QUANTUM_ADS_TENANTS_FILE`` or ``QUANTUM_ADS_TENANTS_SECRET`` (Google Secret Manager) lists
+  each tenant's credentials (see ``secrets``); without either the server is single-tenant
+  (tenant ``default``) on the operator's environment.
 """
 
 from __future__ import annotations
@@ -54,7 +55,6 @@ class RemoteConfig:
     public_key_pem: str | None
     authorization_servers: tuple[str, ...]
     tenant_claim: str
-    tenants_file: Path | None
     rate_limit_rps: float
     allowed_hosts: tuple[str, ...]
     allowed_origins: tuple[str, ...]
@@ -108,7 +108,6 @@ def remote_config_from_env(
     authorization_servers = _csv(env.get("QUANTUM_ADS_OAUTH_AUTHORIZATION_SERVERS")) or (
         (issuer,) if issuer and not local else ()
     )
-    tenants_file = env.get("QUANTUM_ADS_TENANTS_FILE") or None
     config = RemoteConfig(
         public_url=public_url,
         path=path,
@@ -121,7 +120,6 @@ def remote_config_from_env(
         public_key_pem=public_key_pem,
         authorization_servers=authorization_servers,
         tenant_claim=env.get("QUANTUM_ADS_TENANT_CLAIM") or "tenant",
-        tenants_file=Path(tenants_file).expanduser() if tenants_file else None,
         rate_limit_rps=float(env.get("QUANTUM_ADS_RATE_LIMIT_RPS") or "10"),
         allowed_hosts=_csv(env.get("QUANTUM_ADS_ALLOWED_HOSTS")),
         allowed_origins=_csv(env.get("QUANTUM_ADS_ALLOWED_ORIGINS")),

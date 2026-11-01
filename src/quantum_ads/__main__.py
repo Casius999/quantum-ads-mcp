@@ -28,7 +28,8 @@ from .core.remote.http import (
     remote_middleware,
 )
 from .core.remote.issuer import PRIVATE_KEY_NAME, keygen, mint_token
-from .core.tenancy import SCOPE_READ, TenantDirectory
+from .core.remote.secrets import load_tenants
+from .core.tenancy import SCOPE_READ
 from .server import DEFAULT_CONNECTORS, AssembledServer, build_server
 
 # The shipped server keeps its signed audit ledger across restarts unless told otherwise.
@@ -68,11 +69,7 @@ def assemble(env: Mapping[str, str], remote: RemoteConfig | None = None) -> Asse
     }
     if remote is None:
         return build_server(**common)
-    tenants = (
-        TenantDirectory.from_file(remote.tenants_file, build_backends)
-        if remote.tenants_file
-        else None
-    )
+    tenants = load_tenants(env, build_backends)
     return build_server(
         **common,
         auth=build_auth(remote),
