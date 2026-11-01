@@ -17,7 +17,7 @@ from .gaql_tools import run_gaql
 
 
 def register_google_ads_read(app: FastMCP, ctx: ServerContext) -> None:
-    stream = ctx.stream()  # bound once (build client object lazily via the injected factory)
+    stream = ctx.stream()  # lazy: the Google Ads client is built (and authenticated) on first call
 
     def ads_gaql_query(customer_id: str, query: str) -> dict[str, object]:
         return run_gaql(customer_id=customer_id, query=query, stream=stream)

@@ -38,8 +38,21 @@ class ServerContext:
         return self.backends.get(name)
 
     def stream(self) -> StreamFn:
-        """Build the bound read-stream function for the configured tenant + version."""
-        return self.stream_factory(self.creds, self.version)
+        """Return the read-stream for the configured tenant + version, built on first use.
+
+        Building the real client authenticates (token refresh), so doing it at registration
+        would crash server startup on missing or invalid Google Ads credentials and take every
+        other connector down with it. The stream is built once on the first call and reused; a
+        failed build is retried on the next call and surfaces as that tool's structured error.
+        """
+        built: list[StreamFn] = []
+
+        def lazy_stream(customer_id: str, query: str) -> list[dict[str, object]]:
+            if not built:
+                built.append(self.stream_factory(self.creds, self.version))
+            return built[0](customer_id, query)
+
+        return lazy_stream
 
     def mutate(self) -> MutateFn:
         """Build the bound mutate function; raises if no mutate factory was configured."""
