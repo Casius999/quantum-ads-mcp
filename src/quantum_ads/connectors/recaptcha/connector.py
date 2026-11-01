@@ -95,15 +95,13 @@ def _register_read(app: FastMCP, ctx: ServerContext) -> None:
 
 
 def _register_write(app: FastMCP, ctx: ServerContext) -> None:
-    holder: dict[str, WriteExecutor] = {}
 
     def executor() -> WriteExecutor | None:
         backend = ctx.backend(WRITE_BACKEND_KEY)
         if backend is None:
             return None
-        if "ex" not in holder:
-            holder["ex"] = WriteExecutor(cast(MutateFn, backend), ctx.safety, ctx.audit)
-        return holder["ex"]
+        # Built per call: the backend is resolved for the request tenant.
+        return WriteExecutor(cast(MutateFn, backend), ctx.safety, ctx.audit)
 
     def recaptcha_assessment_annotate(
         project_id: str, assessment_id: str, annotation: str, confirm: str | None = None

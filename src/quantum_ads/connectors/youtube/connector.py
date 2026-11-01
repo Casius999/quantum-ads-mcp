@@ -128,15 +128,13 @@ def register_youtube(app: FastMCP, ctx: ServerContext) -> None:
     ]
 
     # --- write tools (backend: youtube.mutate, guarded; account_id=channel_id) ---
-    holder: dict[str, WriteExecutor] = {}
 
     def executor() -> WriteExecutor | None:
         backend = ctx.backend(_MUTATE_BACKEND)
         if backend is None:
             return None
-        if "ex" not in holder:
-            holder["ex"] = WriteExecutor(cast(MutateFn, backend), ctx.safety, ctx.audit)
-        return holder["ex"]
+        # Built per call: the backend is resolved for the request tenant.
+        return WriteExecutor(cast(MutateFn, backend), ctx.safety, ctx.audit)
 
     def youtube_video_update(
         video_id: str, fields: dict[str, object], confirm: str | None = None

@@ -19,16 +19,12 @@ _NOT_CONFIGURED: dict[str, object] = {
 
 
 def register_google_ads_write(app: FastMCP, ctx: ServerContext) -> None:
-    holder: dict[str, WriteExecutor] = {}
 
     def executor() -> WriteExecutor | None:
         if ctx.mutate_factory is None:
             return None
-        if "ex" not in holder:
-            holder["ex"] = WriteExecutor(
-                ctx.mutate_factory(ctx.creds, ctx.version), ctx.safety, ctx.audit
-            )
-        return holder["ex"]
+        # Built per call: ctx.mutate() resolves (and caches) the request tenant\'s client.
+        return WriteExecutor(ctx.mutate(), ctx.safety, ctx.audit)
 
     def ads_campaign_set_status(
         customer_id: str, campaign_id: str, status: str, confirm: str | None = None

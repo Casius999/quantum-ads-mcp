@@ -11,6 +11,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from fastmcp import FastMCP
+from fastmcp.server.auth import AuthProvider
+from fastmcp.server.middleware import Middleware
 
 from .connectors.adh import register_adh
 from .connectors.bigquery import register_bigquery
@@ -39,6 +41,7 @@ from .core.mcp.register import add_tool
 from .core.registry.registry import Capability, ConnectorRegistry, ToolSpec
 from .core.safety.audit import AuditLedger
 from .core.safety.mode import SafetyMode
+from .core.tenancy import TenantDirectory
 from .core.versioning.version_manager import DEFAULT_API_VERSION, VersionManager
 
 Connector = Callable[[FastMCP, ServerContext], None]
@@ -197,6 +200,18 @@ def _register_core(app: FastMCP, ctx: ServerContext) -> None:
     )
 
 
+def _operator_ads_creds(env: Mapping[str, str]) -> dict[str, object]:
+    """The operator's Google Ads client dict, or {} when the environment has none.
+
+    The server still starts without Ads credentials (other connectors, or per-tenant credentials
+    over HTTP); Ads tools then answer with an explicit error instead of crashing startup.
+    """
+    try:
+        return EnvSecretStore(env).get("default").to_google_ads_dict()
+    except KeyError:
+        return {}
+
+
 def _audit_ledger(env: Mapping[str, str]) -> AuditLedger:
     """Persistent ledger under QUANTUM_ADS_AUDIT_DIR when set, else an in-memory one."""
     directory = (env.get("QUANTUM_ADS_AUDIT_DIR") or "").strip()
@@ -209,8 +224,12 @@ def build_server(
     connectors: list[Connector] | None = None,
     mutate_factory: MutateFactory | None = None,
     backends: dict[str, object] | None = None,
+    *,
+    auth: AuthProvider | None = None,
+    middleware: list[Middleware] | None = None,
+    tenants: TenantDirectory | None = None,
 ) -> AssembledServer:
-    creds = EnvSecretStore(env).get("default").to_google_ads_dict()
+    creds = _operator_ads_creds(env)
     version = env.get("GOOGLE_ADS_API_VERSION") or DEFAULT_API_VERSION
     read_only = (env.get("QUANTUM_ADS_READ_ONLY") or "true").lower() != "false"
 
@@ -225,9 +244,10 @@ def build_server(
         audit=_audit_ledger(env),
         mutate_factory=mutate_factory,
         backends=backends or {},
+        tenants=tenants,
     )
 
-    app: FastMCP = FastMCP("quantum-ads")
+    app: FastMCP = FastMCP("quantum-ads", auth=auth, middleware=middleware)
     _register_core(app, ctx)
     for connector in connectors if connectors is not None else _selected_connectors(env):
         connector(app, ctx)
