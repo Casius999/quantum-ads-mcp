@@ -8,6 +8,7 @@ from __future__ import annotations
 import datetime as dt
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from pathlib import Path
 
 from fastmcp import FastMCP
 
@@ -163,11 +164,20 @@ def _register_core(app: FastMCP, ctx: ServerContext) -> None:
     def describe_tool(name: str) -> dict[str, object]:
         return describe_tool_payload(registry, name)
 
+    def audit_status() -> dict[str, object]:
+        return ctx.audit.status()
+
     add_tool(app, "health", "Server + Google Ads API version health.", health)
     add_tool(
         app, "list_capabilities", "List connector capabilities and their tools.", list_capabilities
     )
     add_tool(app, "describe_tool", "Describe a registered tool by name.", describe_tool)
+    add_tool(
+        app,
+        "audit.status",
+        "Signed audit ledger: persistence, path, chain verification, public key.",
+        audit_status,
+    )
     registry.register(
         Capability(
             connector="core",
@@ -178,9 +188,19 @@ def _register_core(app: FastMCP, ctx: ServerContext) -> None:
                     name="list_capabilities", summary="List connector capabilities and tools."
                 ),
                 ToolSpec(name="describe_tool", summary="Describe a registered tool by name."),
+                ToolSpec(
+                    name="audit.status",
+                    summary="Signed audit ledger: persistence, path, chain verification, public key.",
+                ),
             ],
         )
     )
+
+
+def _audit_ledger(env: Mapping[str, str]) -> AuditLedger:
+    """Persistent ledger under QUANTUM_ADS_AUDIT_DIR when set, else an in-memory one."""
+    directory = (env.get("QUANTUM_ADS_AUDIT_DIR") or "").strip()
+    return AuditLedger.open(Path(directory).expanduser()) if directory else AuditLedger.ephemeral()
 
 
 def build_server(
@@ -202,7 +222,7 @@ def build_server(
         version_manager=VersionManager(version, client_factory=lambda c, v: None),
         safety=SafetyMode(read_only),
         registry=registry,
-        audit=AuditLedger.ephemeral(),
+        audit=_audit_ledger(env),
         mutate_factory=mutate_factory,
         backends=backends or {},
     )

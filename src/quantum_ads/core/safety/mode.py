@@ -1,4 +1,4 @@
-"""Read-only safety mode. Default ON for SP0; mutations land in SP1+ behind explicit opt-out."""
+"""Read-only safety mode: ON by default; guarded writes run only after an explicit opt-out."""
 
 from __future__ import annotations
 
