@@ -44,3 +44,15 @@ def test_order_by_does_not_false_trigger_or():
         "WHERE segments.date DURING LAST_7_DAYS ORDER BY metrics.clicks DESC"
     )
     validate_gaql(query)  # 'ORDER' must not match the OR rule
+
+
+def test_impossible_date_literal_is_a_gaql_error():
+    # Found by property-based fuzzing: fromisoformat raised a bare ValueError.
+    import pytest
+
+    from quantum_ads.core.query.gaql_validator import GaqlError, validate_gaql
+
+    with pytest.raises(GaqlError, match="invalid date literal"):
+        validate_gaql(
+            "SELECT campaign.id, segments.date FROM campaign WHERE segments.date = '2000-00-00'"
+        )

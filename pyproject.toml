@@ -37,6 +37,7 @@ dev = [
   "mypy>=1.10",
   "ruff>=0.5",
   "opentelemetry-sdk>=1.30",
+  "hypothesis>=6.100",
 ]
 # OpenTelemetry trace export (OTLP/HTTP). FastMCP emits spans through the OTel API; this extra
 # supplies the SDK + exporter, enabled by the standard OTEL_* variables. uv sync --extra observability
