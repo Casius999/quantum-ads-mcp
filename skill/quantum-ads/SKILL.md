@@ -67,6 +67,15 @@ subset), `QUANTUM_ADS_AUDIT_DIR` (audit ledger location; empty = in memory). Rem
 - Full generated list (131 tools, read vs guarded write): `references/tool-catalog.md`.
 - GAQL recipes + payload patterns: `references/gaql-and-payloads.md`.
 
+## MCP features to use
+- Read `quantum-ads://session` first (tenant, write mode, policy) and
+  `quantum-ads://capabilities` instead of listing tools one by one.
+- Start a job from a prompt: `weekly_account_audit`, `pmax_diagnosis`, `search_terms_mining`,
+  `budget_reallocation`, `merchant_feed_optimization`, `ga4_ads_reconciliation`,
+  `demand_research`, `creative_studio`.
+- With tool search on, call `search_tools` then `call_tool`; long-running tools may answer with
+  a task handle to poll.
+
 ## Guardrails (always)
 1. **Writes are guarded.** Refused while `QUANTUM_ADS_READ_ONLY=true` (default). When enabled,
    every write runs a `validate_only` preview, returns a confirm token, executes only on the

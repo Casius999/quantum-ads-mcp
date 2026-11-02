@@ -17,7 +17,7 @@
 
 **The most complete open Model Context Protocol control plane for the Google marketing stack** — 21 connectors, read + guarded write, Ed25519 signed audit, OAuth 2.1 multi-tenant.
 
-[Architecture](#architecture) · [The 21 connectors](#the-21-connectors) · [Install](#install) · [Configure](#configure) · [Safety](#safety--honest-claims) · [Observability](#observability) · [Roadmap](#roadmap)
+[Architecture](#architecture) · [The 21 connectors](#the-21-connectors) · [Install](#install) · [Configure](#configure) · [Safety](#safety--honest-claims) · [Autonomy](#agent-autonomy-and-mcp-native-features) · [Observability](#observability) · [Roadmap](#roadmap)
 
 </div>
 
@@ -165,6 +165,30 @@ The defensible "most powerful" claim is **coverage breadth + engineering rigor +
 resilience**, each verifiable — *not* "record ad performance" (that depends on budget, creative,
 and Google's auction, not the server). Documentation states only what the test suite proves; the
 per-product live SDK calls are smoke-gated and labelled as such.
+
+## Agent autonomy and MCP-native features
+
+The agent is the decision-maker: it holds the data. With `QUANTUM_ADS_WRITE_MODE=auto` a write
+is validated by the API (`validate_only`) and applied in the same call — a failed validation
+never applies; `confirm` (default) keeps a two-call preview/commit. Guardrails are opt-in: a
+`QUANTUM_ADS_POLICY_FILE` (default + per-tenant sections) can forbid or allow operations by
+glob, cap any `*amount_micros`, bound operations per call, restrict UTC hours and limit writes
+per tenant per day — no file, no limits.
+
+- **Tool annotations** on every tool (`read_only_hint`, `destructive_hint`, `idempotent_hint`,
+  `open_world_hint`, title) so clients auto-run reads and treat destructive writes accordingly.
+- **Resources**: `quantum-ads://capabilities`, `quantum-ads://google-ads/versions`,
+  `quantum-ads://google-ads/field-deltas`, `quantum-ads://session` (tenant, scopes, write mode,
+  effective policy).
+- **Prompts** (playbooks chaining the tools end to end): weekly account audit, PMax diagnosis,
+  search-terms mining, budget reallocation, Merchant feed optimisation, GA4↔Ads
+  reconciliation, demand research, creative studio.
+- **Background tasks** (`QUANTUM_ADS_TASKS=true`, `uv sync --extra tasks`): video, Veo,
+  Gemini, BigQuery runs, Meridian fits and ADH queries run as MCP tasks (SEP-2663) on
+  modern-protocol (2026-07-28) clients — a task handle to poll instead of a held call; every
+  long-running tool also carries a timeout.
+- **Tool search** (`QUANTUM_ADS_TOOL_SEARCH=true`): the catalog collapses to `search_tools` +
+  `call_tool` (BM25) plus the meta tools, so an agent loads only the tools a task needs.
 
 ## Observability
 
