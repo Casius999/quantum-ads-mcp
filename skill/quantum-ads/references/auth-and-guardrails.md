@@ -78,7 +78,8 @@ single-tenant from the environment.
   path, record count, chain verification (first bad index) and the public key for external checks.
 - **Anchoring:** `audit.anchor` publishes the chain head's statement hash to public
   OpenTimestamps calendars (Bitcoin); the `.ots` proof lands in `<audit dir>/anchors/`;
-  `audit.anchor_status` upgrades and reports block heights. Over HTTP it needs `ads:write`.
+  `audit.anchor_status` upgrades, reports block heights and verifies each against the block's
+  merkle root (`bitcoin_verified`). Over HTTP it needs `ads:write`.
 - **Observability:** one JSON line per call on stderr (no arguments/results), counters in
   `health`, OpenTelemetry spans with the tenant; OTLP export via `OTEL_EXPORTER_OTLP_*`.
 - **Cost:** Vertex generation and BigQuery scans bill the project — use BigQuery `dry_run`, keep
