@@ -166,6 +166,14 @@ resilience**, each verifiable — *not* "record ad performance" (that depends on
 and Google's auction, not the server). Documentation states only what the test suite proves; the
 per-product live SDK calls are smoke-gated and labelled as such.
 
+## Google Ads: create and change anything
+
+`ads.mutate` sends official `MutateOperation` JSON for any of the API's 65 mutable resource
+kinds in one `GoogleAdsService.Mutate` request (temporary negative ids link new objects; atomic
+unless `partial_failure`), validated offline against the pinned version's protos first.
+`ads.campaign.create_search` builds a complete Search campaign in one call; Keyword Planner
+ideas, recommendations (list / apply / dismiss) and `ads.mutate.schema` complete the plane.
+
 ## Agent autonomy and MCP-native features
 
 The agent is the decision-maker: it holds the data. With `QUANTUM_ADS_WRITE_MODE=auto` a write
@@ -180,7 +188,8 @@ per tenant per day — no file, no limits.
 - **Resources**: `quantum-ads://capabilities`, `quantum-ads://google-ads/versions`,
   `quantum-ads://google-ads/field-deltas`, `quantum-ads://session` (tenant, scopes, write mode,
   effective policy).
-- **Prompts** (playbooks chaining the tools end to end): weekly account audit, PMax diagnosis,
+- **Prompts** (playbooks chaining the tools end to end): weekly account audit, Search campaign
+  launch, PMax diagnosis,
   search-terms mining, budget reallocation, Merchant feed optimisation, GA4↔Ads
   reconciliation, demand research, creative studio.
 - **Background tasks** (`QUANTUM_ADS_TASKS=true`, `uv sync --extra tasks`): video, Veo,

@@ -1,6 +1,6 @@
 ---
 name: quantum-ads
-description: Use when operating the Quantum ADS MCP server — a sovereign Google marketing-agency control plane exposing 131 tools across 21 connectors (Ads API v26, GA4, GTM, Merchant, Data Manager, Search Console, YouTube, DV360/CM360/SA360, ADH, Business Profile, Workspace, BigQuery, Looker, Vertex AI, free text-to-video, Trends, Meridian, Language, reCAPTCHA), over stdio or OAuth 2.1-protected multi-tenant HTTP. Covers env-var auth per connector, remote serving, the generated tool catalog, GAQL recipes/payloads, version discipline (Nov 2026), and the guarded write / spend / honesty guardrails.
+description: Use when operating the Quantum ADS MCP server — a sovereign Google marketing-agency control plane exposing 138 tools across 21 connectors (Ads API v26, GA4, GTM, Merchant, Data Manager, Search Console, YouTube, DV360/CM360/SA360, ADH, Business Profile, Workspace, BigQuery, Looker, Vertex AI, free text-to-video, Trends, Meridian, Language, reCAPTCHA), over stdio or OAuth 2.1-protected multi-tenant HTTP. Covers env-var auth per connector, remote serving, the generated tool catalog, GAQL recipes/payloads, version discipline (Nov 2026), and the guarded write / spend / honesty guardrails.
 ---
 
 # Quantum ADS — Google marketing agency control plane (MCP, November 2026)
@@ -64,14 +64,23 @@ subset), `QUANTUM_ADS_AUDIT_DIR` (audit ledger location; empty = in memory). Rem
 - **Meta:** `health` (incl. call counters), `list_capabilities`, `describe_tool` — call
   `list_capabilities` first. **Audit:** `audit.status`, `audit.anchor` (Bitcoin via
   OpenTimestamps), `audit.anchor_status`.
-- Full generated list (131 tools, read vs guarded write): `references/tool-catalog.md`.
+- Full generated list (138 tools, read vs guarded write): `references/tool-catalog.md`.
 - GAQL recipes + payload patterns: `references/gaql-and-payloads.md`.
+
+## Creating and changing anything in Google Ads
+- `ads.mutate` takes official `MutateOperation` JSON for ANY resource (`ads.mutate.schema` lists
+  the 65 operation kinds and each resource's fields); negative temporary ids
+  (`customers/<id>/campaigns/-2`) link objects created together; one atomic request unless
+  `partial_failure`. Schema errors come back as `INVALID_OPERATION` before any API call.
+- `ads.campaign.create_search` builds a full Search campaign (budget, bidding, geo/language,
+  negatives, ad group, keywords, RSA) in one call; use `status=PAUSED` to stage.
+- `ads.keyword_ideas` (Keyword Planner), `ads.recommendations.list` / `.apply` / `.dismiss`.
 
 ## MCP features to use
 - Read `quantum-ads://session` first (tenant, write mode, policy) and
   `quantum-ads://capabilities` instead of listing tools one by one.
 - Start a job from a prompt: `weekly_account_audit`, `pmax_diagnosis`, `search_terms_mining`,
-  `budget_reallocation`, `merchant_feed_optimization`, `ga4_ads_reconciliation`,
+  `budget_reallocation`, `launch_search_campaign`, `merchant_feed_optimization`, `ga4_ads_reconciliation`,
   `demand_research`, `creative_studio`.
 - With tool search on, call `search_tools` then `call_tool`; long-running tools may answer with
   a task handle to poll.
