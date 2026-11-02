@@ -38,7 +38,7 @@ from .connectors.video import register_video
 from .connectors.workspace import register_workspace
 from .connectors.youtube import register_youtube
 from .core.auth.secret_store import EnvSecretStore
-from .core.context import MutateFactory, ServerContext, StreamFactory
+from .core.context import MutateFactory, ServerContext, ServicesFactory, StreamFactory
 from .core.mcp.annotations import RegistryAnnotations
 from .core.mcp.guides import register_guides
 from .core.mcp.register import add_tool, enable_tasks
@@ -232,6 +232,7 @@ def build_server(
     middleware: list[Middleware] | None = None,
     tenants: TenantDirectory | None = None,
     recorder: CallRecorder | None = None,
+    services_factory: ServicesFactory | None = None,
 ) -> AssembledServer:
     creds = _operator_ads_creds(env)
     version = env.get("GOOGLE_ADS_API_VERSION") or DEFAULT_API_VERSION
@@ -253,6 +254,7 @@ def build_server(
         mutate_factory=mutate_factory,
         backends=backends or {},
         tenants=tenants,
+        services_factory=services_factory,
     )
 
     # Observability runs innermost, after auth/tenancy middleware has bound the principal.

@@ -15,6 +15,7 @@ from . import report_tools
 from .change_history import change_history
 from .fields import field_deltas_2026, list_new_views
 from .gaql_tools import run_gaql
+from .planning import register_google_ads_planning
 
 
 def register_google_ads_read(app: FastMCP, ctx: ServerContext) -> None:
@@ -106,6 +107,7 @@ def register_google_ads_read(app: FastMCP, ctx: ServerContext) -> None:
         Capability(
             connector="google_ads",
             domain="read",
-            tools=[ToolSpec(name=name, summary=description) for name, description, _ in tools],
+            tools=[ToolSpec(name=name, summary=description) for name, description, _ in tools]
+            + register_google_ads_planning(app, ctx, stream),
         )
     )

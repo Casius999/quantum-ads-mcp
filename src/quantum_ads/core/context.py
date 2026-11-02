@@ -19,6 +19,9 @@ StreamFactory = Callable[[dict[str, object], str], StreamFn]
 MutateFn = Callable[[str, list[dict[str, object]], bool], dict[str, object]]
 # (creds dict, API version) -> bound mutate function.
 MutateFactory = Callable[[dict[str, object], str], MutateFn]
+# (operation, params) -> rows, for Google Ads planning services (Keyword Planner...).
+ServicesFn = Callable[[str, dict[str, object]], list[dict[str, object]]]
+ServicesFactory = Callable[[dict[str, object], str], ServicesFn]
 
 
 @dataclass
@@ -36,6 +39,7 @@ class ServerContext:
     backends: dict[str, object] = field(default_factory=dict)
     # Remote multi-tenant serving: per-tenant credentials, selected by the request principal.
     tenants: TenantDirectory | None = None
+    services_factory: ServicesFactory | None = None
     _clients: dict[tuple[str, str], object] = field(default_factory=dict, repr=False)
 
     def _tenant_id(self) -> str | None:
@@ -84,6 +88,15 @@ class ServerContext:
             return cast(StreamFn, stream)(customer_id, query)
 
         return lazy_stream
+
+    def services(self) -> ServicesFn | None:
+        """Google Ads planning services for the current tenant, or None if not wired."""
+        factory = self.services_factory
+        if factory is None:
+            return None
+        return cast(
+            ServicesFn, self._client("services", lambda creds: factory(creds, self.version))
+        )
 
     def mutate(self) -> MutateFn:
         """The bound mutate function for the current tenant (built once per tenant)."""

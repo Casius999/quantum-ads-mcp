@@ -17,7 +17,11 @@ from pathlib import Path
 from typing import Any
 
 from .backends import build_backends
-from .connectors.google_ads.sdk import default_mutate_factory, default_stream_factory
+from .connectors.google_ads.sdk import (
+    default_mutate_factory,
+    default_services_factory,
+    default_stream_factory,
+)
 from .core.observability.recorder import CallRecorder
 from .core.observability.tracing import configure_tracing
 from .core.remote.http import (
@@ -64,6 +68,7 @@ def assemble(env: Mapping[str, str], remote: RemoteConfig | None = None) -> Asse
         "stream_factory": default_stream_factory,
         "connectors": DEFAULT_CONNECTORS,
         "mutate_factory": default_mutate_factory,
+        "services_factory": default_services_factory,
         "backends": build_backends(env),
         "recorder": CallRecorder(sink=call_log_sink(env)),
     }

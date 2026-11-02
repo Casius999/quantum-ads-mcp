@@ -81,6 +81,17 @@ PROMPTS: dict[str, tuple[str, str]] = {
         "create missing key events with ga4.admin.create_key_event; upload offline "
         "conversions with datamanager.conversions.upload when the CRM has them.",
     ),
+    "launch_search_campaign": (
+        "Research, build and launch a complete Search campaign.",
+        "Launch a Search campaign for {product} on {final_url} in customer {customer_id}.\n"
+        "1. ads.keyword_ideas from seed keywords and the URL: volumes, competition, bids.\n"
+        "2. trends.interest_over_time to time the launch; pick keywords and negatives.\n"
+        "3. vertex.gemini.generate_ad_copy for 10-15 headlines and 4 descriptions.\n"
+        "4. ads.campaign.create_search with budget, bidding, geo/language, keywords, negatives "
+        "and the ad (status PAUSED to stage, ENABLED to go live).\n"
+        "5. ads.gaql.query to confirm the campaign, then ads.mutate for any extra resource "
+        "(sitelinks, audiences...) — ads.mutate.schema lists every operation and field.",
+    ),
     "demand_research": (
         "Research demand and seasonality before launching or scaling.",
         "Research demand for {topic} in {geo}.\n"
