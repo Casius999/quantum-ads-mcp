@@ -67,7 +67,10 @@ def validate_gaql(query: str, today: dt.date | None = None) -> None:
             raise GaqlError(f"segment {segment} used in WHERE must also be in SELECT")
 
     for date_str in _DATE_LITERAL_RE.findall(where):
-        parsed = dt.date.fromisoformat(date_str)
+        try:
+            parsed = dt.date.fromisoformat(date_str)
+        except ValueError as exc:
+            raise GaqlError(f"invalid date literal {date_str!r}: {exc}") from exc
         if _months_between(today, parsed) > MAX_LOOKBACK_MONTHS:
             raise GaqlError(
                 f"date {date_str} exceeds the 37-month lookback cap (effective 2026-06-01)"
