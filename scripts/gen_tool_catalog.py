@@ -44,8 +44,10 @@ def render_catalog() -> str:
         f"**{total} tools across {len(by_connector)} groups** (Google Ads API "
         f"{DEFAULT_API_VERSION}). Every tool returns a structured dict; a missing backend yields "
         "`{error: BACKEND_NOT_CONFIGURED}` instead of raising. Write tools run "
-        "a `validate_only` preview, then apply only when re-called with the returned confirmation, "
-        "then append a signed, hash-chained audit record; they are refused while "
+        "a `validate_only` preview first (a failed validation never applies), then commit — in the "
+        "same call with `QUANTUM_ADS_WRITE_MODE=auto`, or on a second call carrying the returned "
+        "confirmation in `confirm` mode — and append a signed, hash-chained audit record. An "
+        "optional policy file bounds what may be written. Writes are refused while "
         "`QUANTUM_ADS_READ_ONLY=true` (the default).",
         "",
     ]
