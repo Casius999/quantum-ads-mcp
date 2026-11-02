@@ -14,7 +14,7 @@ lives in each connector's `sdk.py` (smoke-gated, not unit-tested). Enable a subs
 
 | Connector | Key tools | Backend keys | Live SDK package |
 |-----------|-----------|--------------|------------------|
-| **google_ads** | `ads.gaql.query`, `ads.report.{campaign,search_terms,pmax_asset_groups,ai_max,conversions}`, `ads.change_history`, `ads.fields.*`, `ads.api.version_delta`, `ads.campaign.set_status`, `ads.budget.update` | `stream_factory`, `mutate_factory` | `google-ads` (35, API v26) |
+| **google_ads** | `ads.mutate` (any resource), `ads.campaign.create_search`, `ads.recommendations.{list,apply,dismiss}`, `ads.keyword_ideas`, `ads.mutate.schema`, `ads.gaql.query`, `ads.report.{campaign,search_terms,pmax_asset_groups,ai_max,conversions}`, `ads.change_history`, `ads.fields.*`, `ads.api.version_delta`, `ads.campaign.set_status`, `ads.budget.update` | `stream_factory`, `mutate_factory` | `google-ads` (35, API v26) |
 | **ga4** | `ga4.report`, `ga4.realtime`, `ga4.admin.list_properties/list_data_streams/list_key_events`, `ga4.admin.create_key_event/create_audience` | `ga4.data`, `ga4.admin`, `ga4.admin.mutate` | `google-analytics-data`, `google-analytics-admin` |
 | **gtm** | `gtm.list_{accounts,containers,workspaces,tags,triggers,variables,versions}`, `gtm.create_tag`, `gtm.update_tag`, `gtm.create_version`, `gtm.publish_version` | `gtm.api`, `gtm.mutate` | `google-api-python-client` (tagmanager v2) |
 | **merchant** | `merchant.products.list`, `merchant.product.get`, `merchant.product_statuses.list`, `merchant.accounts.get`, `merchant.product.insert/update/delete` | `merchant.api`, `merchant.mutate` | `google-shopping-merchant-products/-accounts` |

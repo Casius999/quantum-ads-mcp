@@ -6,7 +6,23 @@ broad-scope OAuth token. The suite lives under `tests/live_smoke/` and runs with
 mutated. The only billable calls are one short Gemini text and one Gemini image generation
 (a few cents); Veo video generation is opt-in (`VERTEX_LIVE_VEO=1`, several USD per clip).
 
-## 2026-11-03 — wave 1, MCP-native foundation (current)
+## 2026-11-03 — wave 2A, Google Ads create/change (current)
+
+Real Google Ads account (customer 7750839245), through the shipped stdio server:
+- `ads.campaign.create_search` applied a complete Search campaign (budget, campaign, geo FR,
+  language FR, ad group, keyword, RSA) in one atomic request — the **paused** QA campaign
+  `QA-SMOKE quantum-ads (PAUSED - ne pas activer)` (id 24418893990, budget 15995259263), kept
+  as the live-test target; it never serves.
+- Applied for real on it: `ads.campaign.set_status` (PAUSED), `ads.budget.update`, and a
+  negative keyword through `ads.mutate`; GAQL read-back confirms the state; the signed audit
+  chain holds the 4 writes.
+- `ads.keyword_ideas` returns Keyword Planner data (e.g. "chaussures running": 18,100 monthly
+  searches, HIGH competition, top-of-page bids 0.17–0.59); `ads.recommendations.list` runs.
+- Live Google Ads suite: 9/9 passed, no skip; every GAQL field the server generates is
+  selectable per GoogleAdsFieldService (new live check — it caught `recommendation.impact.*`
+  sub-fields, which exist in the protos but are not selectable).
+
+## 2026-11-03 — wave 1, MCP-native foundation
 
 Through the shipped stdio server: 131 tools all annotated (34 non-read-only), 4 resources,
 8 prompts, `quantum-ads://session` reporting `write_mode: auto`; tool-search mode lists only
