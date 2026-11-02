@@ -6,7 +6,15 @@ broad-scope OAuth token. The suite lives under `tests/live_smoke/` and runs with
 mutated. The only billable calls are one short Gemini text and one Gemini image generation
 (a few cents); Veo video generation is opt-in (`VERTEX_LIVE_VEO=1`, several USD per clip).
 
-## 2026-11-02 — follow-up (current)
+## 2026-11-03 — wave 1, MCP-native foundation (current)
+
+Through the shipped stdio server: 131 tools all annotated (34 non-read-only), 4 resources,
+8 prompts, `quantum-ads://session` reporting `write_mode: auto`; tool-search mode lists only
+`search_tools`, `call_tool` and the meta tools; with `QUANTUM_ADS_TASKS=true` a modern-protocol
+client gets a task handle for `video.generate` (status `working`, then the result). Offline:
+641 passed, coverage 98.4%.
+
+## 2026-11-02 — follow-up
 
 | Check | Result |
 |-------|--------|

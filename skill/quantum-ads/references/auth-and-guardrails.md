@@ -68,6 +68,14 @@ single-tenant from the environment.
 
 ## Guardrails
 - **Read-only by default:** `QUANTUM_ADS_READ_ONLY=true` refuses every write tool.
+- **Write mode:** `QUANTUM_ADS_WRITE_MODE=auto` lets the agent validate and apply in one call
+  (a failed `validate_only` never applies, `VALIDATION_FAILED`); `confirm` (default) needs a
+  second call carrying the preview's token.
+- **Optional policy** (`QUANTUM_ADS_POLICY_FILE`, JSON):
+  `{"default": {...}, "tenants": {"<id>": {...}}}` with `forbidden_ops` / `allowed_ops` (globs
+  such as `"*.delete"`), `max_amount_micros` (any `*amount_micros` value), `max_operations_per_call`,
+  `allowed_hours_utc` (`[start, end)`), `max_writes_per_day` (per tenant). Checked before any API
+  call; refusals return `POLICY_DENIED`. Unknown keys are rejected at startup. No file = no limits.
 - **Guarded writes:** with read-only off, a write returns a `validate_only` preview and a confirm
   token; only a second call carrying that token executes, and it appends an Ed25519-signed audit
   record chained to the previous one by SHA-256 (`prev_hash`), so an edited, deleted or reordered
