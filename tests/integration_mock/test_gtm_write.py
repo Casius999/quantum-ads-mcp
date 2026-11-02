@@ -126,7 +126,7 @@ def test_create_tag_two_step_confirm_flow():
     captured: dict[str, object] = {}
 
     class _App:
-        def tool(self, name: str, description: str):
+        def tool(self, name: str, description: str, **_: object):
             def deco(fn):
                 captured[name] = fn
                 return fn
@@ -176,7 +176,7 @@ def test_publish_version_blocked_in_read_only_mode():
     captured: dict[str, object] = {}
 
     class _App:
-        def tool(self, name: str, description: str):
+        def tool(self, name: str, description: str, **_: object):
             def deco(fn):
                 captured[name] = fn
                 return fn
@@ -211,7 +211,7 @@ def test_create_tag_reports_backend_not_configured_when_mutate_unwired():
     captured: dict[str, object] = {}
 
     class _App:
-        def tool(self, name: str, description: str):
+        def tool(self, name: str, description: str, **_: object):
             def deco(fn):
                 captured[name] = fn
                 return fn

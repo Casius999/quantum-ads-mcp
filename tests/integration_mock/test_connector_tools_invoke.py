@@ -64,7 +64,7 @@ class _Recorder:
     def __init__(self) -> None:
         self.fns: dict[str, object] = {}
 
-    def tool(self, *, name: str, description: str):  # type: ignore[no-untyped-def]
+    def tool(self, *, name: str, description: str, **_: object):  # type: ignore[no-untyped-def]
         def deco(fn):  # type: ignore[no-untyped-def]
             self.fns[name] = fn
             return fn

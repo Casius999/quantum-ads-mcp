@@ -96,7 +96,7 @@ class _RecordingApp:
     def __init__(self) -> None:
         self.fns: dict[str, object] = {}
 
-    def tool(self, name: str, description: str):
+    def tool(self, name: str, description: str, **_: object):
         def decorator(fn):
             self.fns[name] = fn
             return fn
