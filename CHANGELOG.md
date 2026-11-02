@@ -3,6 +3,18 @@
 All notable changes to Quantum ADS MCP are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/);
 SemVer.
 
+## [0.6.0](https://github.com/Casius999/quantum-ads-mcp/compare/v0.5.0...v0.6.0) (2026-11-02)
+
+
+### Features
+
+* **audit:** verify Bitcoin anchors against the block merkle root ([6ce0d9f](https://github.com/Casius999/quantum-ads-mcp/commit/6ce0d9f19f08a795e855b8745fb0076b1553d98c))
+
+
+### Documentation
+
+* security policy, Bitcoin verification, 2026-11-02 live results ([33465b4](https://github.com/Casius999/quantum-ads-mcp/commit/33465b42c1378f00ac58d1bdba6bd8f3f3f1aa10))
+
 ## [0.5.0](https://github.com/Casius999/quantum-ads-mcp/compare/v0.4.0...v0.5.0) (2026-11-01)
 
 
