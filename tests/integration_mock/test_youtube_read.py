@@ -166,7 +166,7 @@ def test_read_tool_reports_backend_not_configured_when_data_unwired():
     captured: dict[str, object] = {}
 
     class _App:
-        def tool(self, name: str, description: str):
+        def tool(self, name: str, description: str, **_: object):
             def deco(fn):
                 captured[name] = fn
                 return fn
@@ -201,7 +201,7 @@ def test_analytics_tool_reports_backend_not_configured_when_analytics_unwired():
     captured: dict[str, object] = {}
 
     class _App:
-        def tool(self, name: str, description: str):
+        def tool(self, name: str, description: str, **_: object):
             def deco(fn):
                 captured[name] = fn
                 return fn

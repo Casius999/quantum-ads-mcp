@@ -110,7 +110,7 @@ def _capture_tools(ctx) -> dict[str, object]:
     captured: dict[str, object] = {}
 
     class _App:
-        def tool(self, name: str, description: str):
+        def tool(self, name: str, description: str, **_: object):
             def deco(fn):
                 captured[name] = fn
                 return fn

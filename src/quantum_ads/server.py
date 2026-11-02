@@ -13,6 +13,7 @@ from pathlib import Path
 from fastmcp import FastMCP
 from fastmcp.server.auth import AuthProvider
 from fastmcp.server.middleware import Middleware
+from fastmcp.server.transforms.search.bm25 import BM25SearchTransform
 
 from .connectors.adh import register_adh
 from .connectors.bigquery import register_bigquery
@@ -39,7 +40,8 @@ from .connectors.youtube import register_youtube
 from .core.auth.secret_store import EnvSecretStore
 from .core.context import MutateFactory, ServerContext, StreamFactory
 from .core.mcp.annotations import RegistryAnnotations
-from .core.mcp.register import add_tool
+from .core.mcp.guides import register_guides
+from .core.mcp.register import add_tool, enable_tasks
 from .core.observability.middleware import ObservabilityMiddleware
 from .core.observability.recorder import CallRecorder
 from .core.registry.registry import Capability, ConnectorRegistry, ToolSpec
@@ -257,8 +259,20 @@ def build_server(
     recorder = recorder or CallRecorder()
     stack = [*(middleware or []), ObservabilityMiddleware(recorder)]
     app: FastMCP = FastMCP("quantum-ads", auth=auth, middleware=stack)
+    if (env.get("QUANTUM_ADS_TASKS") or "").lower() == "true" and not enable_tasks(app):
+        raise RuntimeError("QUANTUM_ADS_TASKS=true needs the tasks extra: uv sync --extra tasks")
     _register_core(app, ctx, recorder)
     for connector in connectors if connectors is not None else _selected_connectors(env):
         connector(app, ctx)
+    register_guides(app, ctx)
     app.add_transform(RegistryAnnotations(registry))
+    if (env.get("QUANTUM_ADS_TOOL_SEARCH") or "").lower() == "true":
+        # Progressive disclosure: list only the meta tools plus search/call proxies, so an agent
+        # loads the few tools a task needs instead of the whole catalog into its context.
+        app.add_transform(
+            BM25SearchTransform(
+                max_results=int(env.get("QUANTUM_ADS_TOOL_SEARCH_RESULTS") or "8"),
+                always_visible=["health", "list_capabilities", "describe_tool"],
+            )
+        )
     return AssembledServer(app=app, registry=registry)

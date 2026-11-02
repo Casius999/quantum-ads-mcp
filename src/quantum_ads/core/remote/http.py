@@ -180,6 +180,21 @@ class PrincipalMiddleware(Middleware):
     async def on_call_tool(
         self, context: MiddlewareContext[Any], call_next: CallNext[Any, Any]
     ) -> Any:
+        return await self._as_principal(context, call_next)
+
+    async def on_read_resource(
+        self, context: MiddlewareContext[Any], call_next: CallNext[Any, Any]
+    ) -> Any:
+        return await self._as_principal(context, call_next)
+
+    async def on_get_prompt(
+        self, context: MiddlewareContext[Any], call_next: CallNext[Any, Any]
+    ) -> Any:
+        return await self._as_principal(context, call_next)
+
+    async def _as_principal(
+        self, context: MiddlewareContext[Any], call_next: CallNext[Any, Any]
+    ) -> Any:
         token = get_access_token()
         if token is None:
             raise ToolError("authentication required")
