@@ -16,6 +16,7 @@ import pytest
 
 from quantum_ads.connectors.google_ads.read import report_tools
 from quantum_ads.connectors.google_ads.read.change_history import change_history
+from quantum_ads.connectors.google_ads.read.planning import build_recommendations_query
 from quantum_ads.core.versioning.version_manager import DEFAULT_API_VERSION
 
 # Versions checked: the pinned default plus the previous one still in support (migration window).
@@ -41,6 +42,7 @@ def _generated_queries() -> list[str]:
         report(customer_id="1", stream=recording_stream)
     for mode in ("audit", "delta"):
         change_history(customer_id="1", mode=mode, stream=recording_stream)
+    captured.append(build_recommendations_query(["KEYWORD"]))
     return captured
 
 
@@ -68,7 +70,8 @@ def _resolve(version: str, path: str) -> str | None:
     except (ModuleNotFoundError, AttributeError):
         return f"resource {root!r} does not exist in {version}"
     for name in rest:
-        field = descriptor.fields_by_name.get(name)
+        # proto-plus renames Python keywords (GAQL `type` is the `type_` field).
+        field = descriptor.fields_by_name.get(name) or descriptor.fields_by_name.get(name + "_")
         if field is None:
             return f"{path}: field {name!r} absent from {descriptor.name} in {version}"
         descriptor = field.message_type
@@ -79,7 +82,7 @@ def _resolve(version: str, path: str) -> str | None:
 
 def test_queries_were_captured():
     queries = _generated_queries()
-    assert len(queries) == 7, queries
+    assert len(queries) == 8, queries
 
 
 @pytest.mark.parametrize("version", _VERSIONS)

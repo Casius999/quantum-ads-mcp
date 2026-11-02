@@ -11,6 +11,7 @@ from ....core.context import ServerContext
 from ....core.mcp.register import add_tool
 from ....core.registry.registry import Capability, ToolSpec
 from ....core.safety.write_executor import WriteExecutor
+from .advanced import register_google_ads_advanced_write
 from .mutate_tools import build_set_campaign_status_ops, build_update_budget_ops
 
 _NOT_CONFIGURED: dict[str, object] = {
@@ -74,6 +75,7 @@ def register_google_ads_write(app: FastMCP, ctx: ServerContext) -> None:
             tools=[
                 ToolSpec(name=name, summary=description, read_only=False)
                 for name, description, _ in tools
-            ],
+            ]
+            + register_google_ads_advanced_write(app, ctx),
         )
     )
