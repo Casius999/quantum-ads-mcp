@@ -89,15 +89,58 @@ def test_empty_or_in_memory_ledgers_cannot_be_anchored(tmp_path: Path):
 
 def test_status_is_pending_then_upgraded_to_bitcoin(ledger: AuditLedger):
     result = anchor_ledger(ledger, calendars=CALENDARS, calendar_factory=FakeCalendar)
-    pending = anchor_status(ledger, calendar_factory=FakeCalendar)
+    pending = anchor_status(ledger, calendar_factory=FakeCalendar, merkle_root=None)
     assert pending == [
-        {"statement": result["statement"], "status": "pending", "bitcoin_block_heights": []}
+        {
+            "statement": result["statement"],
+            "status": "pending",
+            "bitcoin_block_heights": [],
+            "bitcoin_verified": None,
+        }
     ]
 
     FakeCalendar.confirmed[bytes.fromhex(str(result["sha256"]))] = 921_000
-    confirmed = anchor_status(ledger, calendar_factory=FakeCalendar)
+    confirmed = anchor_status(ledger, calendar_factory=FakeCalendar, merkle_root=None)
     assert confirmed[0]["status"] == "bitcoin"
     assert confirmed[0]["bitcoin_block_heights"] == [921_000]
     # the upgraded proof was saved: a fresh check needs no calendar any more
-    offline = anchor_status(ledger, calendar_factory=DownCalendar)
+    offline = anchor_status(ledger, calendar_factory=DownCalendar, merkle_root=None)
     assert offline[0]["status"] == "bitcoin"
+
+
+def _confirm(result: dict[str, object], height: int) -> bytes:
+    commitment = bytes.fromhex(str(result["sha256"]))
+    FakeCalendar.confirmed[commitment] = height
+    return commitment
+
+
+def test_status_checks_the_block_merkle_root_independently(ledger: AuditLedger):
+    result = anchor_ledger(ledger, calendars=CALENDARS, calendar_factory=FakeCalendar)
+    commitment = _confirm(result, 921_000)
+    roots = {921_000: commitment[::-1].hex()}  # explorers show merkle roots byte-reversed
+    status = anchor_status(ledger, calendar_factory=FakeCalendar, merkle_root=roots.__getitem__)
+    assert status[0]["bitcoin_verified"] is True
+
+
+def test_a_mismatching_block_is_reported_unverified(ledger: AuditLedger):
+    result = anchor_ledger(ledger, calendars=CALENDARS, calendar_factory=FakeCalendar)
+    _confirm(result, 921_000)
+    status = anchor_status(ledger, calendar_factory=FakeCalendar, merkle_root=lambda h: "00" * 32)
+    assert status[0]["bitcoin_verified"] is False
+
+
+def test_an_unreachable_explorer_leaves_verification_unknown(ledger: AuditLedger):
+    result = anchor_ledger(ledger, calendars=CALENDARS, calendar_factory=FakeCalendar)
+    _confirm(result, 921_000)
+
+    def offline(height: int) -> str:
+        raise ConnectionError("explorer down")
+
+    status = anchor_status(ledger, calendar_factory=FakeCalendar, merkle_root=offline)
+    assert status[0]["status"] == "bitcoin" and status[0]["bitcoin_verified"] is None
+
+
+def test_pending_anchor_has_nothing_to_verify(ledger: AuditLedger):
+    anchor_ledger(ledger, calendars=CALENDARS, calendar_factory=FakeCalendar)
+    status = anchor_status(ledger, calendar_factory=FakeCalendar, merkle_root=lambda h: "")
+    assert status[0]["bitcoin_verified"] is None

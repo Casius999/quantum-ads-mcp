@@ -7,8 +7,10 @@ time, the ledger's public key) under ``<audit dir>/anchors/`` and submits its SH
 hash leaves the machine — to public OpenTimestamps calendars, which aggregate it into a Bitcoin
 transaction within hours. The ``.ots`` proof beside the statement is the standard format, so
 anyone can verify it independently with ``ots verify anchor-N.json.ots``.
-``anchor_status`` upgrades pending proofs once Bitcoin has confirmed them and reports the block
-height. Requires the ``anchoring`` extra (``opentimestamps``).
+``anchor_status`` upgrades pending proofs once Bitcoin has confirmed them, reports the block
+heights and — instead of trusting the calendar — checks each attested message against that
+block's merkle root from a public block explorer (``bitcoin_verified``). Requires the
+``anchoring`` extra (``opentimestamps``).
 """
 
 from __future__ import annotations
@@ -30,6 +32,22 @@ DEFAULT_CALENDARS: tuple[str, ...] = (
 CALENDAR_TIMEOUT_S = 15
 
 CalendarFactory = Callable[[str], Any]
+# Block height -> that block's merkle root, hex as block explorers display it (byte-reversed).
+MerkleRootFn = Callable[[int], str]
+_EXPLORER = "https://mempool.space/api"
+
+
+def mempool_merkle_root(height: int) -> str:
+    """Merkle root of the Bitcoin block at ``height`` from the public mempool.space API."""
+    import json
+    import urllib.request
+
+    def get(path: str) -> bytes:
+        with urllib.request.urlopen(f"{_EXPLORER}{path}", timeout=CALENDAR_TIMEOUT_S) as reply:  # noqa: S310
+            return bytes(reply.read())
+
+    block_hash = get(f"/block-height/{int(height)}").decode().strip()
+    return str(json.loads(get(f"/block/{block_hash}"))["merkle_root"])
 
 
 def _remote_calendar(url: str) -> Any:
@@ -101,10 +119,25 @@ def _nodes(stamp: Any) -> Iterator[Any]:
         yield from _nodes(child)
 
 
+def _verify_blocks(
+    attestations: list[tuple[bytes, int]], merkle_root: MerkleRootFn | None
+) -> bool | None:
+    """True if every attested message equals its block's merkle root; None if not checkable."""
+    if not attestations or merkle_root is None:
+        return None
+    try:
+        return all(msg[::-1].hex() == merkle_root(height) for msg, height in attestations)
+    except Exception:  # noqa: BLE001 - explorer unreachable: unknown, not failed
+        return None
+
+
 def anchor_status(
-    ledger: AuditLedger, *, calendar_factory: CalendarFactory = _remote_calendar
+    ledger: AuditLedger,
+    *,
+    calendar_factory: CalendarFactory = _remote_calendar,
+    merkle_root: MerkleRootFn | None = mempool_merkle_root,
 ) -> list[dict[str, object]]:
-    """Upgrade pending proofs from their calendars; report pending vs Bitcoin-confirmed."""
+    """Upgrade pending proofs; report pending vs Bitcoin-confirmed, verified against the chain."""
     from opentimestamps.core.notary import BitcoinBlockHeaderAttestation, PendingAttestation
     from opentimestamps.core.serialize import (
         StreamDeserializationContext,
@@ -134,18 +167,18 @@ def anchor_status(
         if upgraded:
             with proof_path.open("wb") as handle:
                 proof.serialize(StreamSerializationContext(handle))
-        heights = sorted(
-            {
-                att.height
-                for _, att in proof.timestamp.all_attestations()
-                if isinstance(att, BitcoinBlockHeaderAttestation)
-            }
-        )
+        blocks = [
+            (msg, att.height)
+            for msg, att in proof.timestamp.all_attestations()
+            if isinstance(att, BitcoinBlockHeaderAttestation)
+        ]
+        heights = sorted({height for _, height in blocks})
         report.append(
             {
                 "statement": str(proof_path.with_suffix("")),
                 "status": "bitcoin" if heights else "pending",
                 "bitcoin_block_heights": heights,
+                "bitcoin_verified": _verify_blocks(blocks, merkle_root),
             }
         )
     return report
