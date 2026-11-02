@@ -89,7 +89,7 @@ Full tool catalog, backend keys, and required SDK packages: **[CONNECTORS.md](CO
 git clone https://github.com/Casius999/quantum-ads-mcp.git
 cd quantum-ads-mcp
 uv sync --extra dev
-uv run pytest -m "not live"      # 590+ tests, no credentials needed
+uv run pytest -m "not live"      # 600+ tests incl. Hypothesis property fuzzing, no credentials
 ```
 
 Per-connector live SDKs (e.g. `google-analytics-data`, `google-api-python-client`,
@@ -184,8 +184,9 @@ QUANTUM_ADS_LOG_CALLS=false                         # silence the per-call JSON 
 The audit ledger is signed and hash-chained; `audit.anchor` additionally publishes its head to
 Bitcoin through public OpenTimestamps calendars (only a SHA-256 leaves the machine) and saves a
 standard `.ots` proof under `<audit dir>/anchors/`, verifiable by anyone with `ots verify`.
-`audit.anchor_status` upgrades pending proofs once Bitcoin confirms them
-(`uv sync --extra anchoring`).
+`audit.anchor_status` upgrades pending proofs once Bitcoin confirms them and checks each one
+against the block's merkle root from a public explorer rather than trusting the calendar
+(`bitcoin_verified`; `uv sync --extra anchoring`).
 
 ## Roadmap
 

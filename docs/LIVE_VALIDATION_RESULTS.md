@@ -6,7 +6,15 @@ broad-scope OAuth token. The suite lives under `tests/live_smoke/` and runs with
 mutated. The only billable calls are one short Gemini text and one Gemini image generation
 (a few cents); Veo video generation is opt-in (`VERTEX_LIVE_VEO=1`, several USD per clip).
 
-## 2026-11-01 — hardening wave (current)
+## 2026-11-02 — follow-up (current)
+
+| Check | Result |
+|-------|--------|
+| Free text-to-video through the shipped stdio server | `video.generate` → Wan 2.2, valid h264 mp4 832x480, 3.06 s, 221 KB, 46 s end to end, no billing |
+| Audit anchor from 2026-11-01 | upgraded to Bitcoin blocks 974106 and 974149; `bitcoin_verified: true` — the attested messages equal those blocks' merkle roots (mempool.space) |
+| Property-based fuzzing (Hypothesis) | 9 properties over GAQL validation, the Trends RSS parser, the tenant map, video arguments, row flattening and audit-chain tamper detection; found and fixed: an impossible date literal (`2000-00-00`) made the GAQL validator raise a bare `ValueError` instead of `GaqlError` |
+
+## 2026-11-01 — hardening wave
 
 | Check | Result |
 |-------|--------|

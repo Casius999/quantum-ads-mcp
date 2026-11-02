@@ -1,9 +1,30 @@
 # Security Policy
 
+## Supported versions
+
+Security fixes land on the latest released minor version
+([releases](https://github.com/Casius999/quantum-ads-mcp/releases)); upgrade to it to receive them.
+
+| Version | Supported |
+|---------|-----------|
+| latest `0.x` release | yes |
+| older releases | no |
+
 ## Reporting a vulnerability
 
-Please use **GitHub private vulnerability reporting** (Security → Report a vulnerability) for this
-repository. Do not open public issues for security problems.
+Report privately through **GitHub private vulnerability reporting**:
+<https://github.com/Casius999/quantum-ads-mcp/security/advisories/new>.
+Do not open public issues, discussions or pull requests for security problems.
+
+Please include the affected version, a description of the impact, and steps or a proof of
+concept to reproduce. Expect an acknowledgement within **3 business days** and an assessment
+within **10 business days**. Fixes are released as a new version with a GitHub Security
+Advisory crediting the reporter (unless you prefer otherwise); please keep the issue
+confidential until that advisory is published (coordinated disclosure, 90 days at most).
+
+Out of scope: vulnerabilities in Google APIs or third-party services themselves (report those
+to the vendor, e.g. <https://bughunters.google.com>), and findings that require an attacker to
+already control the operator's machine or credentials.
 
 ## Secret hygiene
 
@@ -19,5 +40,8 @@ token) and purge it from git history. Deleting the file does not undo exposure.
 
 ## Safety defaults
 
-The server runs **read-only by default** (`QUANTUM_ADS_READ_ONLY=true`). Mutations (SP1+) are
-gated behind an explicit opt-out plus per-operation confirmation and `validate_only` previews.
+The server runs **read-only by default** (`QUANTUM_ADS_READ_ONLY=true`). Writes require an
+explicit opt-out, then run a `validate_only` preview, a two-step confirmation and an Ed25519-signed,
+hash-chained audit record (optionally anchored in Bitcoin). Over HTTP every request needs an
+OAuth 2.1 bearer token (`ads:read`; `ads:write` for writes) and runs with its own tenant's
+credentials only — see [docs](skill/quantum-ads/references/auth-and-guardrails.md).
