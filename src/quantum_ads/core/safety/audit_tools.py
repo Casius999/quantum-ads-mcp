@@ -73,6 +73,9 @@ def register_audit_tools(app: FastMCP, ctx: ServerContext) -> None:
         Capability(
             connector="core",
             domain="audit",
-            tools=[ToolSpec(name=name, summary=summary) for name, summary, _ in tools],
+            tools=[
+                ToolSpec(name=name, summary=summary, read_only=name != "audit.anchor")
+                for name, summary, _ in tools
+            ],
         )
     )

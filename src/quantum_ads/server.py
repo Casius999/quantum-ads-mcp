@@ -38,6 +38,7 @@ from .connectors.workspace import register_workspace
 from .connectors.youtube import register_youtube
 from .core.auth.secret_store import EnvSecretStore
 from .core.context import MutateFactory, ServerContext, StreamFactory
+from .core.mcp.annotations import RegistryAnnotations
 from .core.mcp.register import add_tool
 from .core.observability.middleware import ObservabilityMiddleware
 from .core.observability.recorder import CallRecorder
@@ -45,6 +46,7 @@ from .core.registry.registry import Capability, ConnectorRegistry, ToolSpec
 from .core.safety.audit import AuditLedger
 from .core.safety.audit_tools import register_audit_tools
 from .core.safety.mode import SafetyMode
+from .core.safety.policy import load_policy
 from .core.tenancy import TenantDirectory
 from .core.versioning.version_manager import DEFAULT_API_VERSION, VersionManager
 
@@ -239,7 +241,11 @@ def build_server(
         version=version,
         stream_factory=stream_factory,
         version_manager=VersionManager(version, client_factory=lambda c, v: None),
-        safety=SafetyMode(read_only),
+        safety=SafetyMode(
+            read_only,
+            write_mode=(env.get("QUANTUM_ADS_WRITE_MODE") or "confirm").strip().lower(),
+            policy=load_policy(env),
+        ),
         registry=registry,
         audit=_audit_ledger(env),
         mutate_factory=mutate_factory,
@@ -254,4 +260,5 @@ def build_server(
     _register_core(app, ctx, recorder)
     for connector in connectors if connectors is not None else _selected_connectors(env):
         connector(app, ctx)
+    app.add_transform(RegistryAnnotations(registry))
     return AssembledServer(app=app, registry=registry)
