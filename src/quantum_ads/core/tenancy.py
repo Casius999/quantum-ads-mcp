@@ -11,12 +11,13 @@ principal isolated across concurrent requests (each asyncio task / worker thread
 
 from __future__ import annotations
 
+import hashlib
 import json
 import threading
 from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
 from contextvars import ContextVar
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from .auth.secret_store import EnvSecretStore
@@ -36,6 +37,15 @@ class Principal:
     tenant_id: str
     subject: str
     scopes: frozenset[str]
+    # A signed-in user's own Google access token ("Sign in with Google"); never printed.
+    credential: str | None = field(default=None, repr=False, compare=False)
+
+    @property
+    def credential_key(self) -> str:
+        """A short fingerprint of the credential, to key per-token caches without storing it."""
+        if not self.credential:
+            return ""
+        return hashlib.sha256(self.credential.encode()).hexdigest()[:16]
 
     @property
     def can_write(self) -> bool:

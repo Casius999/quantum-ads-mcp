@@ -115,6 +115,9 @@ class LazyBackend:
 
 
 def _google_oauth(env: Mapping[str, str]) -> dict[str, object] | None:
+    access = env.get("QUANTUM_ADS_GOOGLE_ACCESS_TOKEN")
+    if access:  # a signed-in user's own token (Sign in with Google), no refresh token
+        return {"access_token": access, "refresh_token": None}
     client_id = env.get("GOOGLE_OAUTH_CLIENT_ID") or env.get("GOOGLE_ADS_CLIENT_ID")
     secret = env.get("GOOGLE_OAUTH_CLIENT_SECRET") or env.get("GOOGLE_ADS_CLIENT_SECRET")
     refresh = env.get("GOOGLE_OAUTH_REFRESH_TOKEN") or env.get("GOOGLE_ADS_REFRESH_TOKEN")

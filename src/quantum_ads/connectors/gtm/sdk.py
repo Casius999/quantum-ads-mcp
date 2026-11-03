@@ -34,8 +34,8 @@ def _build_service(creds: dict[str, object], scopes: list[str]) -> Any:
 
     quota = creds.get("quota_project_id")
     credentials = Credentials(
-        token=None,
-        refresh_token=str(creds.get("refresh_token")),
+        token=creds.get("access_token"),
+        refresh_token=creds.get("refresh_token"),
         token_uri="https://oauth2.googleapis.com/token",
         client_id=str(creds.get("client_id")),
         client_secret=str(creds.get("client_secret")),
