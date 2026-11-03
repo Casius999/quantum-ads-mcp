@@ -16,8 +16,10 @@ from ....core.context import ServerContext
 from ....core.mcp.register import add_tool
 from ....core.registry.registry import ToolSpec
 from ....core.safety.write_executor import WriteExecutor
+from ....core.tenancy import current_principal
 from .operations import InvalidOperation, build_search_campaign, validate_operations
 from .pmax import build_pmax_campaign
+from .rollback import with_update_masks
 
 _NOT_CONFIGURED: dict[str, object] = {
     "error": {"code": "MUTATE_NOT_CONFIGURED", "message": "no mutate_factory wired"}
@@ -45,6 +47,7 @@ def register_google_ads_advanced_write(app: FastMCP, ctx: ServerContext) -> list
         partial_failure: bool = False,
         confirm: str | None = None,
     ) -> dict[str, object]:
+        operations = with_update_masks(operations)
         try:
             validate_operations(operations, ctx.version)
         except InvalidOperation as exc:
@@ -140,6 +143,29 @@ def register_google_ads_advanced_write(app: FastMCP, ctx: ServerContext) -> list
         batch: dict[str, object] = {"entity": "mutate", "operations": operations}
         return run("ads.campaign.create_pmax", customer_id, [batch], confirm)
 
+    def ads_rollback(
+        audit_index: int | None = None, confirm: str | None = None
+    ) -> dict[str, object]:
+        principal = current_principal()
+        tenant = principal.tenant_id if principal is not None else None
+        records = list(ctx.audit.records)
+        candidates = [
+            (index, record)
+            for index, record in enumerate(records)
+            if record.op.startswith("ads.")
+            and record.payload.get("inverse_operations")
+            and (tenant is None or record.actor.split(":", 1)[0] == tenant)
+        ]
+        if audit_index is not None:
+            candidates = [(i, r) for i, r in candidates if i == audit_index]
+        if not candidates:
+            return _invalid(InvalidOperation("no reversible Google Ads change found in the audit"))
+        index, record = candidates[-1]
+        inverse = list(record.payload["inverse_operations"])  # type: ignore[call-overload]
+        batch: dict[str, object] = {"entity": "mutate", "operations": inverse}
+        result = run("ads.rollback", str(record.payload["customer_id"]), [batch], confirm)
+        return {**result, "rolled_back": {"audit_index": index, "op": record.op, "ts": record.ts}}
+
     def recommendations(entity: str, op: str) -> Callable[..., dict[str, object]]:
         def tool(
             customer_id: str, resource_names: list[str], confirm: str | None = None
@@ -171,6 +197,12 @@ def register_google_ads_advanced_write(app: FastMCP, ctx: ServerContext) -> list
             "targeting, text + image assets (base64, e.g. from vertex.imagen.generate), asset "
             "group, and brand assets (business name, logo) under brand guidelines.",
             ads_campaign_create_pmax,
+        ),
+        (
+            "ads.rollback",
+            "Undo a Google Ads change from the signed audit trail (latest reversible change of "
+            "this tenant, or audit_index): restores updated fields, removes created objects.",
+            ads_rollback,
         ),
         (
             "ads.recommendations.apply",

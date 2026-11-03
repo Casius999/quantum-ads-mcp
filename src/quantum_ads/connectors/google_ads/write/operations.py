@@ -87,11 +87,31 @@ def validate_operations(operations: Sequence[dict[str, object]], version: str) -
             )
         message = message_cls()
         try:
-            json_format.ParseDict(operation, message)
+            json_format.ParseDict(_json_masks(operation), message)
         except json_format.ParseError as exc:
             raise InvalidOperation(f"operation {index}: {exc}") from exc
         parsed.append(message)
     return parsed
+
+
+def _camel(path: str) -> str:
+    return ".".join(
+        part.split("_")[0] + "".join(w[:1].upper() + w[1:] for w in part.split("_")[1:])
+        for part in path.split(".")
+    )
+
+
+def _json_masks(operation: dict[str, Any]) -> dict[str, Any]:
+    """Proto3 JSON writes FieldMask paths in camelCase; accept snake_case, camelCase or a list."""
+    kind, body = next(iter(operation.items()))
+    if not isinstance(body, dict) or "update_mask" not in body:
+        return operation
+    mask = body["update_mask"]
+    if isinstance(mask, dict):
+        mask = mask.get("paths", [])
+    paths = mask if isinstance(mask, list) else str(mask).split(",")
+    camel = ",".join(_camel(str(p).strip()) for p in paths if str(p).strip())
+    return {kind: {**body, "update_mask": camel}}
 
 
 def _text_assets(texts: Sequence[str], limit: int, label: str) -> list[dict[str, object]]:

@@ -35,6 +35,15 @@ def default_mutate_factory(creds: dict[str, object], version: str) -> MutateFn:
     from google.api_core.protobuf_helpers import field_mask
     from google.protobuf.json_format import MessageToDict
 
+    from .write.operations import validate_operations
+    from .write.rollback import (
+        before_state_query,
+        created_names,
+        inverse_of_creates,
+        inverse_of_update,
+        mask_paths,
+    )
+
     client = GoogleAdsClient.load_from_dict(creds, version=version)
 
     def _campaign_update(
@@ -71,7 +80,6 @@ def default_mutate_factory(creds: dict[str, object], version: str) -> MutateFn:
 
     def _generic(customer_id: str, op: dict[str, object], validate_only: bool) -> dict[str, object]:
         """GoogleAdsService.Mutate over any resource, atomic unless partial_failure."""
-        from .write.operations import validate_operations
 
         service = client.get_service("GoogleAdsService")
         mutate_type = type(client.get_type("MutateOperation"))
@@ -82,8 +90,44 @@ def default_mutate_factory(creds: dict[str, object], version: str) -> MutateFn:
         request.partial_failure = bool(op.get("partial_failure", False))
         request.validate_only = validate_only
         request.response_content_type = client.enums.ResponseContentTypeEnum.MUTABLE_RESOURCE
+        undo_updates = [] if validate_only else _before_state(customer_id, op["operations"])
         response = service.mutate(request=request)
-        return MessageToDict(response._pb, preserving_proto_field_name=True)
+        out = MessageToDict(response._pb, preserving_proto_field_name=True)
+        if not validate_only:
+            undo_creates = [
+                inverse
+                for kind, name in created_names(out)
+                if kind in _created_kinds(op["operations"])
+                for inverse in inverse_of_creates(kind, [name])
+            ]
+            # Undo in reverse order: removing created children before their parents.
+            out["inverse_operations"] = list(reversed(undo_creates)) + undo_updates
+            out["irreversible_operations"] = sum(
+                1 for item in op["operations"] if "remove" in next(iter(item.values()))
+            )
+        return out
+
+    def _created_kinds(operations: list[dict[str, object]]) -> set[str]:
+        return {kind for item in operations for kind, body in item.items() if "create" in body}
+
+    def _before_state(
+        customer_id: str, operations: list[dict[str, object]]
+    ) -> list[dict[str, object]]:
+        """Inverse updates restoring the current value of every field an update will change."""
+        search = client.get_service("GoogleAdsService")
+        inverses: list[dict[str, object]] = []
+        for item in operations:
+            kind, body = next(iter(item.items()))
+            if "update" not in body:
+                continue
+            name = str(body["update"]["resource_name"])
+            paths = mask_paths(body)
+            rows = list(
+                search.search(customer_id=customer_id, query=before_state_query(kind, name, paths))
+            )
+            row = MessageToDict(rows[0]._pb, preserving_proto_field_name=True) if rows else {}
+            inverses.append(inverse_of_update(kind, name, paths, row))
+        return inverses
 
     def _recommendations(
         customer_id: str, op: dict[str, object], validate_only: bool
@@ -148,7 +192,11 @@ def default_mutate_factory(creds: dict[str, object], version: str) -> MutateFn:
             if handler is None:
                 raise ValueError(f"unsupported mutate entity: {op.get('entity')!r}")
             results.append(handler(customer_id, op, validate_only))
-        return {"validate_only": validate_only, "results": results}
+        out: dict[str, object] = {"validate_only": validate_only, "results": results}
+        inverses = [inv for r in results for inv in r.pop("inverse_operations", [])]
+        if inverses:
+            out["inverse_operations"] = inverses
+        return out
 
     return mutate
 

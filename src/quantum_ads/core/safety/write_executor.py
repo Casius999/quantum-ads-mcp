@@ -66,6 +66,10 @@ class WriteExecutor:
         if policy is not None:
             policy.record_write(tenant)
         actor = principal.actor if principal is not None else "default"
+        inverse = result.get("inverse_operations") if isinstance(result, dict) else None
+        if inverse:
+            # Recorded with the write so ads.rollback can replay it from the signed trail.
+            payload = {**payload, "inverse_operations": inverse}
         record = self._audit.append(actor=actor, op=op, payload=payload)
         return {
             "applied": True,
