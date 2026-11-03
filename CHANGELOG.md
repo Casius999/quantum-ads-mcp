@@ -3,6 +3,19 @@
 All notable changes to Quantum ADS MCP are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/);
 SemVer.
 
+## [0.9.0](https://github.com/Casius999/quantum-ads-mcp/compare/v0.8.0...v0.9.0) (2026-11-03)
+
+
+### Features
+
+* **google-ads:** Demand Gen campaigns, A/B experiments, batch jobs, Reach Planner ([43dd4a6](https://github.com/Casius999/quantum-ads-mcp/commit/43dd4a6ed8b7665505706ba51f87c83cc7015cc0))
+* **insights:** campaign intelligence and creative studio with a free fallback chain ([55f03d2](https://github.com/Casius999/quantum-ads-mcp/commit/55f03d2813769a9be611c16a9307aecad5509591))
+
+
+### Documentation
+
+* wave 2 complete — Demand Gen, experiments, batch jobs, Reach ([08e56a2](https://github.com/Casius999/quantum-ads-mcp/commit/08e56a22a459179461a4845a01add483aecc2dec))
+
 ## [0.8.0](https://github.com/Casius999/quantum-ads-mcp/compare/v0.7.0...v0.8.0) (2026-11-03)
 
 
