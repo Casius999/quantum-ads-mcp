@@ -83,6 +83,8 @@ BACKENDS: dict[str, BackendSpec] = {
     "image.free": BackendSpec("insights", "free_image_factory", _HF),
     "llm.chat": BackendSpec("insights", "openai_chat_factory", _LLM),
     "image.openai": BackendSpec("insights", "openai_image_factory", _LLM),
+    "google.api": BackendSpec("googleapi", "read_factory", _OAUTH),
+    "google.api.mutate": BackendSpec("googleapi", "mutate_factory", _OAUTH),
 }
 
 _INSTALL_HINT = "install the connector SDKs: `uv sync --extra connectors`"

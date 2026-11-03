@@ -15,6 +15,7 @@ from fastmcp import FastMCP
 from ....core.context import ServerContext
 from ....core.mcp.register import add_tool
 from ....core.registry.registry import ToolSpec
+from ....core.safety.reversal import reversible, rollback_op
 from ....core.safety.write_executor import WriteExecutor
 from ....core.tenancy import current_principal
 from .operations import InvalidOperation, build_search_campaign, validate_operations
@@ -148,22 +149,16 @@ def register_google_ads_advanced_write(app: FastMCP, ctx: ServerContext) -> list
     ) -> dict[str, object]:
         principal = current_principal()
         tenant = principal.tenant_id if principal is not None else None
-        records = list(ctx.audit.records)
-        candidates = [
-            (index, record)
-            for index, record in enumerate(records)
-            if record.op.startswith("ads.")
-            and record.payload.get("inverse_operations")
-            and (tenant is None or record.actor.split(":", 1)[0] == tenant)
-        ]
-        if audit_index is not None:
-            candidates = [(i, r) for i, r in candidates if i == audit_index]
+        candidates = reversible(
+            ctx.audit.records, prefix="ads.", tenant=tenant, audit_index=audit_index
+        )
         if not candidates:
             return _invalid(InvalidOperation("no reversible Google Ads change found in the audit"))
         index, record = candidates[-1]
         inverse = list(record.payload["inverse_operations"])  # type: ignore[call-overload]
         batch: dict[str, object] = {"entity": "mutate", "operations": inverse}
-        result = run("ads.rollback", str(record.payload["customer_id"]), [batch], confirm)
+        op = rollback_op("ads.rollback", index)
+        result = run(op, str(record.payload["customer_id"]), [batch], confirm)
         return {**result, "rolled_back": {"audit_index": index, "op": record.op, "ts": record.ts}}
 
     def recommendations(entity: str, op: str) -> Callable[..., dict[str, object]]:

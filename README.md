@@ -75,6 +75,11 @@ multi-product.** Quantum ADS fills that gap.
 
 Full tool catalog, backend keys, and required SDK packages: **[CONNECTORS.md](CONNECTORS.md)**.
 
+**Beyond the curated tools**, `google.api.call` runs any write method of 25 marketing Google
+APIs (653 write methods, 1,180 in all), checked offline against each API's Discovery contract,
+scope-checked, guarded, audited and reversible where the API allows — the way `ads.mutate`
+covers every Google Ads resource.
+
 ## Core (shared by every connector)
 
 - **Multi-tenant auth + secret store** — credentials load from env / secret manager and **never reach the LLM**.

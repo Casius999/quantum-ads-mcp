@@ -69,8 +69,24 @@ subset), `QUANTUM_ADS_AUDIT_DIR` (audit ledger location; empty = in memory), `QU
   `creative.pmax_pack` (copy checked against Google Ads limits, one automatic repair round;
   images fitted to spec) — Vertex first, then the free `QUANTUM_ADS_LLM_*` endpoint, SDXL
   (`QUANTUM_ADS_IMAGE_MODEL`) and FLUX.
-- Full generated list (156 tools, read vs guarded write): `references/tool-catalog.md`.
+- Full generated list (162 tools, read vs guarded write): `references/tool-catalog.md`.
 - GAQL recipes + payload patterns: `references/gaql-and-payloads.md`.
+
+## Changing anything in the other Google APIs
+- `google.api.*` reaches every method of 25 marketing APIs (GA4 Admin/Data, Tag Manager,
+  Merchant, Content, YouTube, DV360, CM360, SA360, Business Profile, Search Console,
+  Sheets/Drive/Slides/Docs, BigQuery, Ads Data Hub, Data Manager, reCAPTCHA, Language,
+  Translate): 1,180 methods, 653 of them writes. `google.api.list` -> `google.api.methods`
+  (filter by `resource`, `writes_only`) -> `google.api.describe` (parameters, body fields,
+  scopes) -> `google.api.read` or `google.api.call`.
+- Every call is checked offline against the API's Discovery contract (method, required and
+  unknown parameters, path patterns, enums, body field names and JSON types). Writes then run
+  the guarded flow; the preview also refuses a method the token holds no scope for, and uses
+  the API's own `validateOnly` when it has one. Deletes need `allow_delete=true`; BigQuery jobs
+  go through the cost-guarded `bigquery.query`.
+- Updates read the resource first and creates record their `delete`/`archive`, so
+  `google.api.rollback` undoes the latest reversible call. Rollbacks walk back through history
+  and are never undone by the next rollback (same for `ads.rollback`).
 
 ## Creating and changing anything in Google Ads
 - `ads.mutate` takes official `MutateOperation` JSON for ANY resource (`ads.mutate.schema` lists

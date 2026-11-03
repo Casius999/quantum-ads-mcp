@@ -24,6 +24,7 @@ from .connectors.ga4 import register_ga4
 from .connectors.gbp import register_gbp
 from .connectors.google_ads.read.connector import register_google_ads_read
 from .connectors.google_ads.write.connector import register_google_ads_write
+from .connectors.googleapi import register_google_api
 from .connectors.gtm import register_gtm
 from .connectors.insights import register_insights
 from .connectors.language import register_language
@@ -72,6 +73,7 @@ DEFAULT_CONNECTORS: list[Connector] = [
     register_vertex,
     register_video,
     register_insights,
+    register_google_api,
     register_trends,
     register_gbp,
     register_looker,
@@ -101,6 +103,7 @@ _CONNECTOR_BY_NAME: dict[str, list[Connector]] = {
     "vertex": [register_vertex],
     "video": [register_video],
     "insights": [register_insights],
+    "google_api": [register_google_api],
     "trends": [register_trends],
     "gbp": [register_gbp],
     "looker": [register_looker],

@@ -6,7 +6,25 @@ broad-scope OAuth token. The suite lives under `tests/live_smoke/` and runs with
 mutated. The only billable calls are one short Gemini text and one Gemini image generation
 (a few cents); Veo video generation is opt-in (`VERTEX_LIVE_VEO=1`, several USD per clip).
 
-## 2026-11-03 — wave 3, insights and creative studio (current)
+## 2026-11-03 — wave 4, the generic Google API plane (current)
+
+- All 25 Discovery documents load from the copies bundled with the client library: 1,180
+  methods, 653 of them writes, now reachable through `google.api.call`.
+- Reads through `google.api.read` on the real token: Tag Manager, GA4 Admin, Search Console
+  and YouTube answer.
+- A full reversible write on a permanent QA draft GTM workspace (never published): rename ->
+  `google.api.rollback` restored the name from the signed audit.
+- The token holds 17 scopes and none for Drive/Sheets or `tagmanager.delete.containers`; the
+  preview now names the missing scope and refuses before anything is written (proven live on a
+  workspace delete). A GA4 Admin create in confirm mode was previewed against the contract and
+  not applied.
+- Found by live testing and fixed: a second rollback undid the first rollback instead of
+  walking back (also latent in `ads.rollback`); Search Console methods carry a `webmasters.`
+  prefix; GTM identifies new resources by `path`; reporting POSTs (`searchanalytics.query`)
+  are reads. One QA draft workspace from the first run remains in the GTM container (deleting
+  it needs the scope above); it is now the permanent QA workspace.
+
+## 2026-11-03 — wave 3, insights and creative studio
 
 - Through the shipped stdio server on the real account: `insights.anomalies`, `insights.pacing`
   and `insights.search_terms` run their GAQL without error (empty on the QA account, which has
