@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 
-import httpx
+import httpx2 as httpx
 import pytest
 from fastmcp import Client
 from fastmcp.exceptions import ToolError
