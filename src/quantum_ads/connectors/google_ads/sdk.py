@@ -175,10 +175,76 @@ def default_mutate_factory(creds: dict[str, object], version: str) -> MutateFn:
             response = service.dismiss_recommendation(request=request)
         return MessageToDict(response._pb, preserving_proto_field_name=True)
 
+    def _experiment(
+        customer_id: str, op: dict[str, object], validate_only: bool
+    ) -> dict[str, object]:
+        """Schedule / promote / end an experiment (each RPC supports validate_only)."""
+        service = client.get_service("ExperimentService")
+        name = str(op["resource_name"])
+        action = str(op["entity"]).removeprefix("experiment_")
+        if action == "schedule":
+            result = service.schedule_experiment(resource_name=name, validate_only=validate_only)
+        elif action == "promote":
+            result = service.promote_experiment(resource_name=name, validate_only=validate_only)
+        else:
+            service.end_experiment(experiment=name, validate_only=validate_only)
+            return {"experiment": name, "action": "end", "validate_only": validate_only}
+        operation = getattr(result, "operation", None) or result
+        return {
+            "experiment": name,
+            "action": action,
+            "validate_only": validate_only,
+            "long_running_operation": getattr(operation, "name", None)
+            if not validate_only
+            else None,
+        }
+
+    def _batch_submit(
+        customer_id: str, op: dict[str, object], validate_only: bool
+    ) -> dict[str, object]:
+        """BatchJob for large mutations; the preview validates every chunk with Mutate."""
+        operations = list(op["operations"])  # type: ignore[call-overload]
+        parsed = validate_operations(operations, version)
+        mutate_type = type(client.get_type("MutateOperation"))
+        protos = [mutate_type.deserialize(m.SerializeToString()) for m in parsed]
+        if validate_only:
+            service = client.get_service("GoogleAdsService")
+            for start in range(0, len(protos), 5000):
+                request = client.get_type("MutateGoogleAdsRequest")
+                request.customer_id = customer_id
+                request.mutate_operations.extend(protos[start : start + 5000])
+                request.validate_only = True
+                request.partial_failure = True
+                service.mutate(request=request)
+            return {"validate_only": True, "operations": len(protos)}
+        service = client.get_service("BatchJobService")
+        job_operation = client.get_type("BatchJobOperation")
+        job_operation.create = client.get_type("BatchJob")
+        created = service.mutate_batch_job(customer_id=customer_id, operation=job_operation)
+        job = created.result.resource_name
+        sequence_token = ""
+        for start in range(0, len(protos), 5000):
+            added = service.add_batch_job_operations(
+                resource_name=job,
+                sequence_token=sequence_token,
+                mutate_operations=protos[start : start + 5000],
+            )
+            sequence_token = added.next_sequence_token
+        run = service.run_batch_job(resource_name=job)
+        return {
+            "batch_job": job,
+            "operations": len(protos),
+            "long_running_operation": run.operation.name,
+        }
+
     handlers = {
         "campaign": _campaign_update,
         "campaign_budget": _budget_update,
         "mutate": _generic,
+        "experiment_schedule": _experiment,
+        "experiment_promote": _experiment,
+        "experiment_end": _experiment,
+        "batch_submit": _batch_submit,
         "recommendation_apply": _recommendations,
         "recommendation_dismiss": _recommendations,
     }
@@ -246,7 +312,90 @@ def default_services_factory(creds: dict[str, object], version: str) -> Services
                 break
         return rows
 
-    operations = {"keyword_ideas": keyword_ideas}
+    def batch_status(params: dict[str, object]) -> list[dict[str, object]]:
+        from google.protobuf.json_format import MessageToDict
+
+        customer_id, job = str(params["customer_id"]), str(params["batch_job"])
+        search = client.get_service("GoogleAdsService")
+        rows = list(
+            search.search(
+                customer_id=customer_id,
+                query=(
+                    "SELECT batch_job.resource_name, batch_job.status, "
+                    "batch_job.metadata.operation_count, batch_job.metadata.executed_operation_count "
+                    f"FROM batch_job WHERE batch_job.resource_name = '{job}'"
+                ),
+            )
+        )
+        if not rows:
+            return [{"batch_job": job, "status": "NOT_FOUND"}]
+        info = MessageToDict(rows[0].batch_job._pb, preserving_proto_field_name=True)
+        out: dict[str, object] = {"batch_job": job, **info}
+        if rows[0].batch_job.status.name == "DONE":
+            results = client.get_service("BatchJobService").list_batch_job_results(
+                resource_name=job
+            )
+            items = []
+            for result in results:
+                item = MessageToDict(result._pb, preserving_proto_field_name=True)
+                items.append(item)
+                if len(items) >= int(params.get("limit") or 100):
+                    break
+            out["results"] = items
+            out["failed"] = sum(1 for item in items if item.get("status"))
+        return [out]
+
+    def reach_locations(params: dict[str, object]) -> list[dict[str, object]]:
+        response = client.get_service("ReachPlanService").list_plannable_locations()
+        return [
+            {
+                "id": loc.id,
+                "name": loc.name,
+                "parent_country_id": loc.parent_country_id,
+                "country_code": loc.country_code,
+                "location_type": loc.location_type,
+            }
+            for loc in response.plannable_locations
+        ]
+
+    def reach_products(params: dict[str, object]) -> list[dict[str, object]]:
+        response = client.get_service("ReachPlanService").list_plannable_products(
+            plannable_location_id=str(params["location_id"])
+        )
+        return [
+            {"code": p.plannable_product_code, "name": p.plannable_product_name}
+            for p in response.product_metadata
+        ]
+
+    def reach_forecast(params: dict[str, object]) -> list[dict[str, object]]:
+        from google.protobuf.json_format import MessageToDict
+
+        request = client.get_type("GenerateReachForecastRequest")
+        request.customer_id = str(params["customer_id"])
+        request.currency_code = str(params["currency_code"])
+        request.campaign_duration.duration_in_days = int(params["duration_days"])
+        request.targeting.plannable_location_id = str(params["location_id"])
+        for product in params["products"]:  # type: ignore[union-attr]
+            planned = client.get_type("PlannedProduct")
+            planned.plannable_product_code = str(product["code"])
+            planned.budget_micros = int(product["budget_micros"])
+            request.planned_products.append(planned)
+        response = client.get_service("ReachPlanService").generate_reach_forecast(request=request)
+        curve = MessageToDict(response._pb, preserving_proto_field_name=True)
+        return [
+            {
+                "reach_curve": curve.get("reach_curve", {}),
+                "on_target_audience_metrics": curve.get("on_target_audience_metrics", {}),
+            }
+        ]
+
+    operations = {
+        "keyword_ideas": keyword_ideas,
+        "batch_status": batch_status,
+        "reach_locations": reach_locations,
+        "reach_products": reach_products,
+        "reach_forecast": reach_forecast,
+    }
 
     def call(op: str, params: dict[str, object]) -> list[dict[str, object]]:
         if op not in operations:

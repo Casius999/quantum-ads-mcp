@@ -24,6 +24,15 @@ _SERVICES_NOT_CONFIGURED: dict[str, object] = {
 }
 
 
+def _api_message(exc: Exception) -> str:
+    """Google Ads errors carry a failure with codes and messages; keep those, not the gRPC dump."""
+    failure = getattr(exc, "failure", None)
+    if failure is not None and getattr(failure, "errors", None):
+        parts = [f"{err.error_code}: {err.message}" for err in failure.errors]
+        return " ".join("; ".join(parts).split())[:1000]
+    return str(exc)[:1000]
+
+
 def build_recommendations_query(types: list[str] | None = None, limit: int = 100) -> str:
     where = " WHERE recommendation.dismissed = FALSE"
     if types:
@@ -67,6 +76,45 @@ def register_google_ads_planning(
         )
         return {"rows": rows, "row_count": len(rows)}
 
+    def service_rows(op: str, params: dict[str, object]) -> dict[str, object]:
+        services = ctx.services()
+        if services is None:
+            return dict(_SERVICES_NOT_CONFIGURED)
+        try:
+            rows = services(op, params)
+        except Exception as exc:  # noqa: BLE001 - API refusals (e.g. allowlisted Reach Planner)
+            return {"error": {"code": "API_ERROR", "message": _api_message(exc)}}
+        return {"rows": rows, "row_count": len(rows)}
+
+    def ads_batch_status(customer_id: str, batch_job: str, limit: int = 100) -> dict[str, object]:
+        return service_rows(
+            "batch_status", {"customer_id": customer_id, "batch_job": batch_job, "limit": limit}
+        )
+
+    def ads_reach_locations() -> dict[str, object]:
+        return service_rows("reach_locations", {})
+
+    def ads_reach_products(location_id: str) -> dict[str, object]:
+        return service_rows("reach_products", {"location_id": location_id})
+
+    def ads_reach_forecast(
+        customer_id: str,
+        location_id: str,
+        currency_code: str,
+        duration_days: int,
+        products: list[dict[str, Any]],
+    ) -> dict[str, object]:
+        return service_rows(
+            "reach_forecast",
+            {
+                "customer_id": customer_id,
+                "location_id": location_id,
+                "currency_code": currency_code,
+                "duration_days": duration_days,
+                "products": products,
+            },
+        )
+
     def ads_mutate_schema(operation_kind: str | None = None) -> dict[str, object]:
         if operation_kind is None:
             return {"version": ctx.version, "operation_kinds": operation_kinds(ctx.version)}
@@ -86,6 +134,27 @@ def register_google_ads_planning(
             "Keyword Planner ideas from seed keywords and/or a URL: monthly searches, "
             "competition, top-of-page bid range.",
             ads_keyword_ideas,
+        ),
+        (
+            "ads.batch.status",
+            "Status of a BatchJob and, once done, its per-operation results.",
+            ads_batch_status,
+        ),
+        (
+            "ads.reach.locations",
+            "Reach Planner: plannable locations (ids for ads.reach.products / forecast).",
+            ads_reach_locations,
+        ),
+        (
+            "ads.reach.products",
+            "Reach Planner: plannable video/display products for a location.",
+            ads_reach_products,
+        ),
+        (
+            "ads.reach.forecast",
+            "Reach Planner forecast (reach curve, on-target impressions) for a media plan: "
+            "products [{code, budget_micros}], location, currency, duration.",
+            ads_reach_forecast,
         ),
         (
             "ads.mutate.schema",
