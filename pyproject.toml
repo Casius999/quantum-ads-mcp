@@ -140,11 +140,13 @@ module = [
   "quantum_ads.connectors.adh.sdk",
   "quantum_ads.connectors.video.sdk",
   "quantum_ads.connectors.insights.sdk",
+  "quantum_ads.connectors.googleapi.sdk",
 ]
 ignore_errors = true
 
 [tool.pytest.ini_options]
 addopts = "-q"
+pythonpath = ["."]  # lets integration tests share fixtures from tests/unit
 markers = ["live: hits a real Google Ads account (requires creds, run manually)"]
 
 [tool.coverage.run]
@@ -170,5 +172,6 @@ omit = [
   "*/connectors/workspace/sdk.py",
   "*/connectors/recaptcha/sdk.py",
   "*/connectors/adh/sdk.py",
+  "*/connectors/googleapi/sdk.py",
   "*/__main__.py",
 ]

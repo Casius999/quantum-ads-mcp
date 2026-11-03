@@ -46,7 +46,11 @@ to spec) with a free fallback chain (OpenAI-compatible text, SDXL, FLUX). Remain
 - Merchant feed optimisation (titles/descriptions rewritten, product issues fixed).
 - Client reporting: Sheets/Slides decks generated from live data.
 
-## Wave 4 — Write breadth across every other connector
+## Wave 4 — Write breadth across every other connector (core done)
+Shipped: the generic `google.api.*` plane — every method of 25 marketing APIs (653 writes),
+Discovery-validated, scope-checked in the preview, guarded, audited, with before-state /
+delete-or-archive inverses for `google.api.rollback`. Curated builders below remain useful
+for the common multi-step flows.
 - GA4 (custom dimensions/metrics, conversions, data streams, audiences), GTM (triggers,
   variables, server-side), Merchant (data sources, promotions, regional inventory),
   YouTube (uploads, thumbnails, captions), DV360/CM360/SA360 (campaign objects),
