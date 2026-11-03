@@ -28,6 +28,7 @@ _PROJECT = "project"  # Google OAuth + a GCP project
 _LOOKER = "looker"  # Looker API3 credentials
 _NONE = "none"  # no credentials (public / local library)
 _HF = "huggingface"  # public Spaces; an optional free HF_TOKEN raises the quota
+_LLM = "llm"  # any OpenAI-compatible chat endpoint (QUANTUM_ADS_LLM_*)
 
 
 @dataclass(frozen=True)
@@ -79,6 +80,9 @@ BACKENDS: dict[str, BackendSpec] = {
     "trends.api": BackendSpec("trends", "read_factory", _NONE),
     "meridian.api": BackendSpec("meridian", "mmm_read_factory", _NONE),
     "video.free": BackendSpec("video", "free_video_factory", _HF),
+    "image.free": BackendSpec("insights", "free_image_factory", _HF),
+    "llm.chat": BackendSpec("insights", "openai_chat_factory", _LLM),
+    "image.openai": BackendSpec("insights", "openai_image_factory", _LLM),
 }
 
 _INSTALL_HINT = "install the connector SDKs: `uv sync --extra connectors`"
@@ -121,6 +125,16 @@ def _creds_for(needs: str, env: Mapping[str, str]) -> dict[str, object] | None:
     """Credentials for one requirement class, or None when the environment cannot serve it."""
     if needs == _NONE:
         return {}
+    if needs == _LLM:
+        base_url = env.get("QUANTUM_ADS_LLM_BASE_URL")
+        if not base_url:
+            return None
+        return {
+            "base_url": base_url,
+            "api_key": env.get("QUANTUM_ADS_LLM_API_KEY", ""),
+            "model": env.get("QUANTUM_ADS_LLM_MODEL", ""),
+            "image_model": env.get("QUANTUM_ADS_IMAGE_MODEL", ""),
+        }
     if needs == _HF:
         token = env.get("HF_TOKEN") or env.get("HUGGING_FACE_HUB_TOKEN")
         return {"hf_token": token} if token else {}

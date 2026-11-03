@@ -38,6 +38,7 @@ dev = [
   "ruff>=0.5",
   "opentelemetry-sdk>=1.30",
   "hypothesis>=6.100",
+  "pillow>=11",
 ]
 # OpenTelemetry trace export (OTLP/HTTP). FastMCP emits spans through the OTel API; this extra
 # supplies the SDK + exporter, enabled by the standard OTEL_* variables. uv sync --extra observability
@@ -69,6 +70,7 @@ connectors = [
   "looker-sdk>=24.0",
   "pytrends>=4.9",
   "gradio_client>=2.7",  # free text-to-video via Hugging Face ZeroGPU Spaces
+  "pillow>=11",  # fit generated images to Google Ads specs (creative.pmax_pack)
 ]
 # Meridian (marketing-mix modeling) is a LOCAL library, not a Google API. It pulls a heavy
 # TensorFlow + tfp-nightly stack that forces numpy/pandas DOWNGRADES conflicting with the other
@@ -137,6 +139,7 @@ module = [
   "quantum_ads.connectors.recaptcha.sdk",
   "quantum_ads.connectors.adh.sdk",
   "quantum_ads.connectors.video.sdk",
+  "quantum_ads.connectors.insights.sdk",
 ]
 ignore_errors = true
 

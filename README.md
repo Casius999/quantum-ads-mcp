@@ -71,7 +71,7 @@ multi-product.** Quantum ADS fills that gap.
 | **Catalog / tagging** | Merchant API, Google Tag Manager (+ server-side, Consent Mode v2) |
 | **Channels** | YouTube (Data + Analytics + Reporting), Business Profile, Trends |
 | **Warehouse / BI / MMM** | BigQuery (cost-guarded), Ads Data Hub, Looker, Meridian (Bayesian MMM) |
-| **Creative / ops** | Vertex AI (Gemini 3.8 / Gemini image / Veo 3.1, pure REST), free text-to-video (Wan 2.2 / LTX-Video on Hugging Face ZeroGPU, no billing), Cloud Translation + NL, Workspace (Sheets/Drive/Slides), reCAPTCHA Enterprise |
+| **Creative / ops** | Vertex AI (Gemini 3.8 / Gemini image / Veo 3.1, pure REST), free text-to-video (Wan 2.2 / LTX-Video on Hugging Face ZeroGPU, no billing), creative studio + campaign insights (anomalies, pacing, search-term mining, GA4 reconciliation; free OpenAI-compatible / SDXL / FLUX fallback when Vertex is unbilled), Cloud Translation + NL, Workspace (Sheets/Drive/Slides), reCAPTCHA Enterprise |
 
 Full tool catalog, backend keys, and required SDK packages: **[CONNECTORS.md](CONNECTORS.md)**.
 

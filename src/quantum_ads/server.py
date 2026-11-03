@@ -25,6 +25,7 @@ from .connectors.gbp import register_gbp
 from .connectors.google_ads.read.connector import register_google_ads_read
 from .connectors.google_ads.write.connector import register_google_ads_write
 from .connectors.gtm import register_gtm
+from .connectors.insights import register_insights
 from .connectors.language import register_language
 from .connectors.looker import register_looker
 from .connectors.merchant import register_merchant
@@ -70,6 +71,7 @@ DEFAULT_CONNECTORS: list[Connector] = [
     register_bigquery,
     register_vertex,
     register_video,
+    register_insights,
     register_trends,
     register_gbp,
     register_looker,
@@ -98,6 +100,7 @@ _CONNECTOR_BY_NAME: dict[str, list[Connector]] = {
     "bigquery": [register_bigquery],
     "vertex": [register_vertex],
     "video": [register_video],
+    "insights": [register_insights],
     "trends": [register_trends],
     "gbp": [register_gbp],
     "looker": [register_looker],
