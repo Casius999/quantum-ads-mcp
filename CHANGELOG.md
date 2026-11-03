@@ -3,6 +3,21 @@
 All notable changes to Quantum ADS MCP are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/);
 SemVer.
 
+## [0.7.0](https://github.com/Casius999/quantum-ads-mcp/compare/v0.6.0...v0.7.0) (2026-11-03)
+
+
+### Features
+
+* **google-ads:** mutate any resource, full Search campaigns, recommendations, Keyword Planner ([e34f20d](https://github.com/Casius999/quantum-ads-mcp/commit/e34f20d11eb89eaf8ff23238bd04f762961f75b3))
+* **mcp:** resources, playbook prompts, background tasks and tool search ([fd478d0](https://github.com/Casius999/quantum-ads-mcp/commit/fd478d08000d631c2bc2e49f6ea53f7d6e464e3a))
+* **safety:** autonomous write mode, optional write policy, MCP tool annotations ([302a723](https://github.com/Casius999/quantum-ads-mcp/commit/302a72321dcb7e3d123de06652286883191d5397))
+
+
+### Documentation
+
+* agent autonomy, MCP-native features, v1 roadmap ([2b6a325](https://github.com/Casius999/quantum-ads-mcp/commit/2b6a325b058f3e5d9521403ecfb4ac03415d0586))
+* Google Ads create/change plane, wave 2A live results ([2164e76](https://github.com/Casius999/quantum-ads-mcp/commit/2164e7680d608d09449fec3a9a46b62c05cc2e3e))
+
 ## [0.6.0](https://github.com/Casius999/quantum-ads-mcp/compare/v0.5.0...v0.6.0) (2026-11-02)
 
 
