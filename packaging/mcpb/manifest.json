@@ -2,7 +2,7 @@
   "manifest_version": "0.4",
   "name": "quantum-ads-mcp",
   "display_name": "Quantum ADS",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Google marketing control plane: Google Ads v26 and 24 more Google APIs, guarded writes, signed audit.",
   "long_description": "Read and change Google Ads, GA4, Tag Manager, Merchant, YouTube, DV360, CM360, SA360, Business Profile, Search Console, BigQuery and more. Every write is previewed (validate_only or the API contract), guarded by read-only mode and an optional policy, and recorded in an Ed25519-signed, hash-chained audit with rollback.",
   "author": {

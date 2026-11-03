@@ -3,6 +3,15 @@
 All notable changes to Quantum ADS MCP are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/);
 SemVer.
 
+## [0.10.0](https://github.com/Casius999/quantum-ads-mcp/compare/v0.9.0...v0.10.0) (2026-11-03)
+
+
+### Features
+
+* **evals:** agent eval harness, mutation testing, and agent-friendly fixes it exposed ([6153d1e](https://github.com/Casius999/quantum-ads-mcp/commit/6153d1e18909fdbcc8163e44fbf05445d2010378))
+* **google-api:** generic Discovery-validated read/write plane over 25 Google APIs ([e1aa3ac](https://github.com/Casius999/quantum-ads-mcp/commit/e1aa3ac72b1a4940e741dce3c8949c41efd35b2e))
+* **remote:** Sign in with Google, MCP bundle, signed image, registry and PyPI publishing ([cae39a4](https://github.com/Casius999/quantum-ads-mcp/commit/cae39a4132e5eaa4cd6045ba7829cc80af468fc1))
+
 ## [0.9.0](https://github.com/Casius999/quantum-ads-mcp/compare/v0.8.0...v0.9.0) (2026-11-03)
 
 
