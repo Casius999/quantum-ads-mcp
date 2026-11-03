@@ -171,8 +171,11 @@ per-product live SDK calls are smoke-gated and labelled as such.
 `ads.mutate` sends official `MutateOperation` JSON for any of the API's 65 mutable resource
 kinds in one `GoogleAdsService.Mutate` request (temporary negative ids link new objects; atomic
 unless `partial_failure`), validated offline against the pinned version's protos first.
-`ads.campaign.create_search` builds a complete Search campaign in one call; Keyword Planner
+`ads.campaign.create_search` and `ads.campaign.create_pmax` build complete Search and
+Performance Max campaigns (assets, asset group, brand assets) in one call; Keyword Planner
 ideas, recommendations (list / apply / dismiss) and `ads.mutate.schema` complete the plane.
+Every applied `ads.mutate` records its inverse in the signed audit trail — updated fields are
+read back first, created objects are removed on undo — and `ads.rollback` replays it.
 
 ## Agent autonomy and MCP-native features
 

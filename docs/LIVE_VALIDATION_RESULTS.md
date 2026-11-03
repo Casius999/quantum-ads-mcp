@@ -6,7 +6,19 @@ broad-scope OAuth token. The suite lives under `tests/live_smoke/` and runs with
 mutated. The only billable calls are one short Gemini text and one Gemini image generation
 (a few cents); Veo video generation is opt-in (`VERTEX_LIVE_VEO=1`, several USD per clip).
 
-## 2026-11-03 — wave 2A, Google Ads create/change (current)
+## 2026-11-03 — wave 2B, Performance Max and rollback (current)
+
+- `ads.campaign.create_pmax`: a complete Performance Max build (budget, campaign with brand
+  guidelines, targeting, 10 text + 3 image assets, asset group, links, campaign brand assets —
+  25 linked operations) accepted by the real API in `validate_only`; nothing created.
+- Rollback, for real on the paused QA campaign through the shipped server: a rename through
+  `ads.mutate` (mask derived automatically) was undone by `ads.rollback` (name restored, checked
+  by GAQL); a negative keyword created through `ads.mutate` was undone (removed). The signed
+  audit chain holds all 8 writes and verifies.
+- Found while building: protobuf JSON expects `FieldMask` paths in camelCase; `ads.mutate` now
+  accepts snake_case, camelCase or a list.
+
+## 2026-11-03 — wave 2A, Google Ads create/change
 
 Real Google Ads account (customer 7750839245), through the shipped stdio server:
 - `ads.campaign.create_search` applied a complete Search campaign (budget, campaign, geo FR,
