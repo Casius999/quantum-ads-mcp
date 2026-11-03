@@ -3,6 +3,19 @@
 All notable changes to Quantum ADS MCP are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/);
 SemVer.
 
+## [0.8.0](https://github.com/Casius999/quantum-ads-mcp/compare/v0.7.0...v0.8.0) (2026-11-03)
+
+
+### Features
+
+* **google-ads:** complete Performance Max campaigns in one atomic call ([92a605f](https://github.com/Casius999/quantum-ads-mcp/commit/92a605f244742270a2a3abef2b023ed9d6af2515))
+* **google-ads:** rollback any applied change from the signed audit trail ([a67d339](https://github.com/Casius999/quantum-ads-mcp/commit/a67d339b16a8c4f3590d7c05140238ffb8f052c5))
+
+
+### Documentation
+
+* Performance Max, rollback and wave 2B live results ([5921b75](https://github.com/Casius999/quantum-ads-mcp/commit/5921b75ad77096aff897d9cea2d00301360a819a))
+
 ## [0.7.0](https://github.com/Casius999/quantum-ads-mcp/compare/v0.6.0...v0.7.0) (2026-11-03)
 
 
