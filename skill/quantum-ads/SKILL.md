@@ -57,7 +57,8 @@ QUANTUM_ADS_READ_ONLY=true            # writes refused until set to false
 Optional: `GOOGLE_OAUTH_{CLIENT_ID,CLIENT_SECRET,REFRESH_TOKEN}` (separate non-Ads credential),
 `GOOGLE_VERTEX_LOCATION` (default `global`), `LOOKERSDK_{BASE_URL,CLIENT_ID,CLIENT_SECRET}`,
 `GOOGLE_ADS_API_VERSION`, `GOOGLE_ADS_LOGIN_CUSTOMER_ID`, `QUANTUM_ADS_CONNECTORS` (mount a
-subset), `QUANTUM_ADS_AUDIT_DIR` (audit ledger location; empty = in memory), `QUANTUM_ADS_LLM_{BASE_URL,API_KEY,MODEL}` + `QUANTUM_ADS_IMAGE_MODEL` (free creative fallback, any OpenAI-compatible endpoint). Remote (HTTP) serving, tokens, scopes and tenants: see "Remote serving" in
+subset), `QUANTUM_ADS_AUDIT_DIR` (audit ledger location; empty = in memory), `QUANTUM_ADS_LLM_{BASE_URL,API_KEY,MODEL}` + `QUANTUM_ADS_IMAGE_MODEL` (free creative fallback, any OpenAI-compatible endpoint). Remote (HTTP) serving with "Sign in with Google" (`QUANTUM_ADS_AUTH=google`, each user acts with
+their own Google token, allowlist + writers list): `docs/DEPLOY.md`. Other remote modes, tokens, scopes and tenants: see "Remote serving" in
 `references/auth-and-guardrails.md`. Full matrix + secret hygiene: same file.
 
 ## Tool catalog

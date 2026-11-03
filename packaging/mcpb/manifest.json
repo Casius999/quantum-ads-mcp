@@ -1,0 +1,102 @@
+{
+  "manifest_version": "0.4",
+  "name": "quantum-ads-mcp",
+  "display_name": "Quantum ADS",
+  "version": "0.9.0",
+  "description": "Google marketing control plane: Google Ads v26 and 24 more Google APIs, guarded writes, signed audit.",
+  "long_description": "Read and change Google Ads, GA4, Tag Manager, Merchant, YouTube, DV360, CM360, SA360, Business Profile, Search Console, BigQuery and more. Every write is previewed (validate_only or the API contract), guarded by read-only mode and an optional policy, and recorded in an Ed25519-signed, hash-chained audit with rollback.",
+  "author": {
+    "name": "Casius999",
+    "url": "https://github.com/Casius999"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Casius999/quantum-ads-mcp"
+  },
+  "homepage": "https://github.com/Casius999/quantum-ads-mcp",
+  "license": "MIT",
+  "keywords": [
+    "google-ads",
+    "ga4",
+    "marketing",
+    "mcp",
+    "tag-manager",
+    "merchant"
+  ],
+  "server": {
+    "type": "uv",
+    "entry_point": "server.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "${__dirname}",
+        "--extra",
+        "connectors",
+        "server.py"
+      ],
+      "env": {
+        "GOOGLE_ADS_DEVELOPER_TOKEN": "${user_config.developer_token}",
+        "GOOGLE_ADS_CLIENT_ID": "${user_config.client_id}",
+        "GOOGLE_ADS_CLIENT_SECRET": "${user_config.client_secret}",
+        "GOOGLE_ADS_REFRESH_TOKEN": "${user_config.refresh_token}",
+        "GOOGLE_CLOUD_PROJECT": "${user_config.cloud_project}",
+        "QUANTUM_ADS_READ_ONLY": "${user_config.read_only}"
+      }
+    }
+  },
+  "user_config": {
+    "developer_token": {
+      "type": "string",
+      "title": "Google Ads developer token",
+      "description": "From the Google Ads API Center of your manager account.",
+      "sensitive": true,
+      "required": true
+    },
+    "client_id": {
+      "type": "string",
+      "title": "OAuth client id",
+      "description": "Desktop OAuth client from your Google Cloud project.",
+      "required": true
+    },
+    "client_secret": {
+      "type": "string",
+      "title": "OAuth client secret",
+      "description": "Secret of the same OAuth client.",
+      "sensitive": true,
+      "required": true
+    },
+    "refresh_token": {
+      "type": "string",
+      "title": "OAuth refresh token",
+      "description": "Minted with scripts/get_refresh_token.py; carries the scopes of the connectors you use.",
+      "sensitive": true,
+      "required": true
+    },
+    "cloud_project": {
+      "type": "string",
+      "title": "Google Cloud project (optional)",
+      "description": "Enables BigQuery, Vertex, Language and reCAPTCHA, and routes quota.",
+      "required": false,
+      "default": ""
+    },
+    "read_only": {
+      "type": "string",
+      "title": "Read-only mode",
+      "description": "true refuses every write; false enables guarded writes (preview, audit, rollback).",
+      "required": false,
+      "default": "true"
+    }
+  },
+  "compatibility": {
+    "platforms": [
+      "darwin",
+      "win32",
+      "linux"
+    ],
+    "runtimes": {
+      "python": ">=3.11"
+    }
+  }
+}

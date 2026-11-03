@@ -1,0 +1,37 @@
+# gcloud run services replace deploy/cloudrun/service.yaml --region=europe-west1
+# Replace <project>, <version>, <service url>, <client id> and the domain; create the secrets first.
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: quantum-ads-mcp
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: "3"
+    spec:
+      containerConcurrency: 40
+      containers:
+        - image: europe-west1-docker.pkg.dev/<project>/ghcr/casius999/quantum-ads-mcp:<version>
+          ports:
+            - containerPort: 8080
+          env:
+            - name: QUANTUM_ADS_AUTH
+              value: google
+            - name: QUANTUM_ADS_PUBLIC_URL
+              value: https://<service url>
+            - name: QUANTUM_ADS_GOOGLE_CLIENT_ID
+              value: <client id>
+            - name: QUANTUM_ADS_GOOGLE_ALLOWED
+              value: "@youragency.com"
+            - name: QUANTUM_ADS_READ_ONLY
+              value: "true"
+            - name: QUANTUM_ADS_GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef: {name: qa-google-client-secret, key: latest}
+            - name: QUANTUM_ADS_JWT_SIGNING_KEY
+              valueFrom:
+                secretKeyRef: {name: qa-jwt-key, key: latest}
+            - name: GOOGLE_ADS_DEVELOPER_TOKEN
+              valueFrom:
+                secretKeyRef: {name: qa-dev-token, key: latest}

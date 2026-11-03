@@ -1,3 +1,4 @@
+<!-- mcp-name: io.github.casius999/quantum-ads-mcp -->
 <div align="center">
 
 <img src="assets/banner.svg" alt="quantum-ads-mcp — sovereign Google marketing-agency control plane" width="880">
@@ -96,6 +97,18 @@ cd quantum-ads-mcp
 uv sync --extra dev
 uv run pytest -m "not live"      # 600+ tests incl. Hypothesis property fuzzing, no credentials
 ```
+
+**Other ways in** (each release ships them, with signed provenance):
+
+- **One-click bundle** — download `quantum-ads-mcp.mcpb` from the latest release and open it in
+  Claude Desktop; it asks for the developer token and OAuth values and keeps the secrets in the
+  OS keychain.
+- **Container** — `ghcr.io/casius999/quantum-ads-mcp` serves Streamable HTTP on `:8080`
+  (`gh attestation verify oci://ghcr.io/casius999/quantum-ads-mcp:<version> -R Casius999/quantum-ads-mcp`).
+  Deployment on Cloud Run, and "Sign in with Google" for a team: [docs/DEPLOY.md](docs/DEPLOY.md).
+- **PyPI / MCP Registry** — `uvx quantum-ads-mcp` and the registry entry
+  `io.github.casius999/quantum-ads-mcp` (`server.json`) publish from the release workflow once
+  PyPI trusted publishing is enabled for the repository.
 
 Per-connector live SDKs (e.g. `google-analytics-data`, `google-api-python-client`,
 `google-cloud-bigquery`) are installed only when you wire a connector's live backend — see

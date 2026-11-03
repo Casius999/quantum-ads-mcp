@@ -8,16 +8,34 @@ Imports are local so importing this module stays cheap and credential-free.
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import Any
 
 StreamFn = Callable[[str, str], list[dict[str, object]]]
 MutateFn = Callable[[str, list[dict[str, object]], bool], dict[str, object]]
 
 
-def default_stream_factory(creds: dict[str, object], version: str) -> StreamFn:
+def _ads_client(creds: dict[str, object], version: str) -> Any:
+    """The operator's refresh-token client, or one bound to a signed-in user's access token."""
     from google.ads.googleads.client import GoogleAdsClient
+
+    if creds.get("access_token") and not creds.get("refresh_token"):
+        from google.oauth2.credentials import Credentials
+
+        login = creds.get("login_customer_id")
+        return GoogleAdsClient(
+            credentials=Credentials(token=str(creds["access_token"])),
+            developer_token=str(creds["developer_token"]),
+            login_customer_id=str(login) if login else None,
+            version=version,
+            use_proto_plus=True,
+        )
+    return GoogleAdsClient.load_from_dict(creds, version=version)
+
+
+def default_stream_factory(creds: dict[str, object], version: str) -> StreamFn:
     from google.protobuf.json_format import MessageToDict
 
-    client = GoogleAdsClient.load_from_dict(creds, version=version)
+    client = _ads_client(creds, version)
     service = client.get_service("GoogleAdsService")
 
     def stream(customer_id: str, query: str) -> list[dict[str, object]]:
@@ -31,7 +49,6 @@ def default_stream_factory(creds: dict[str, object], version: str) -> StreamFn:
 
 
 def default_mutate_factory(creds: dict[str, object], version: str) -> MutateFn:
-    from google.ads.googleads.client import GoogleAdsClient
     from google.api_core.protobuf_helpers import field_mask
     from google.protobuf.json_format import MessageToDict
 
@@ -44,7 +61,7 @@ def default_mutate_factory(creds: dict[str, object], version: str) -> MutateFn:
         mask_paths,
     )
 
-    client = GoogleAdsClient.load_from_dict(creds, version=version)
+    client = _ads_client(creds, version)
 
     def _campaign_update(
         customer_id: str, op: dict[str, object], validate_only: bool
@@ -272,9 +289,8 @@ ServicesFn = Callable[[str, dict[str, object]], list[dict[str, object]]]
 
 def default_services_factory(creds: dict[str, object], version: str) -> ServicesFn:
     """Read-only Google Ads planning services (Keyword Planner ideas)."""
-    from google.ads.googleads.client import GoogleAdsClient
 
-    client = GoogleAdsClient.load_from_dict(creds, version=version)
+    client = _ads_client(creds, version)
 
     def keyword_ideas(params: dict[str, object]) -> list[dict[str, object]]:
         service = client.get_service("KeywordPlanIdeaService")

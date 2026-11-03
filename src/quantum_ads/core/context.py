@@ -59,7 +59,10 @@ class ServerContext:
 
     def _client(self, kind: str, build: Callable[[dict[str, object]], object]) -> object:
         tenant_id = self._tenant_id()
-        key = (kind, tenant_id or "")
+        principal = current_principal()
+        # A signed-in user's access token rotates hourly: key clients by its fingerprint too.
+        stamp = principal.credential_key if principal is not None else ""
+        key = (kind, f"{tenant_id or ''}#{stamp}")
         if key not in self._clients:
             self._clients[key] = build(self._ads_creds(tenant_id))
         return self._clients[key]

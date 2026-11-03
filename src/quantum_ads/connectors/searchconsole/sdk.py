@@ -33,8 +33,8 @@ def _oauth_credentials(creds: dict[str, object], scopes: list[str]) -> Any:
 
     quota = creds.get("quota_project_id")
     return Credentials(
-        token=None,
-        refresh_token=str(creds["refresh_token"]),
+        token=creds.get("access_token"),
+        refresh_token=creds.get("refresh_token"),
         client_id=str(creds["client_id"]),
         client_secret=str(creds["client_secret"]),
         token_uri="https://oauth2.googleapis.com/token",

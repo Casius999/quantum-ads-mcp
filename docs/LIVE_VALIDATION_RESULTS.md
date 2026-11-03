@@ -6,7 +6,23 @@ broad-scope OAuth token. The suite lives under `tests/live_smoke/` and runs with
 mutated. The only billable calls are one short Gemini text and one Gemini image generation
 (a few cents); Veo video generation is opt-in (`VERTEX_LIVE_VEO=1`, several USD per clip).
 
-## 2026-11-03 — wave 4, the generic Google API plane (current)
+## 2026-11-03 — wave 5, sign-in and distribution (current)
+
+- The `.mcpb` bundle validated and packed with `@anthropic-ai/mcpb` 2.1.2, was unpacked and
+  started with its own manifest command (`uv run --directory <bundle> ... server.py`): 162 tools,
+  `health` answers. Found on the way: without a pinned `.python-version`, uv picked a Python with
+  no PyYAML wheel; the bundle now carries the repository's pin.
+- `server.json` validated against the registry schema `2025-12-11` (its 100-character
+  description limit caught a too-long description).
+- Sign in with Google, offline end to end: the served app publishes OAuth authorization-server
+  metadata with a `/register` endpoint and the marketing scopes, answers 401 without a token,
+  runs each tool as the signed-in user, refuses users outside the allowlist, and rebuilds the
+  Ads client when the user's token rotates. A real Google login needs a Web OAuth client and a
+  public URL; not run here.
+- The container image is built in CI (`container.yml`), which also checks that the server
+  refuses to serve HTTP with no authentication configured; no Docker on this machine.
+
+## 2026-11-03 — wave 4, the generic Google API plane
 
 - All 25 Discovery documents load from the copies bundled with the client library: 1,180
   methods, 653 of them writes, now reachable through `google.api.call`.

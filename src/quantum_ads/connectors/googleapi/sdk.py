@@ -54,8 +54,8 @@ def _credentials(creds: dict[str, object]) -> Any:
     quota = creds.get("quota_project_id")
     # No explicit scopes: the refresh token's own grant decides what each API accepts.
     return Credentials(
-        token=None,
-        refresh_token=str(creds.get("refresh_token")),
+        token=creds.get("access_token"),
+        refresh_token=creds.get("refresh_token"),
         token_uri="https://oauth2.googleapis.com/token",
         client_id=str(creds.get("client_id")),
         client_secret=str(creds.get("client_secret")),

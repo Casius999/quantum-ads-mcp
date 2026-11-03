@@ -57,7 +57,11 @@ for the common multi-step flows.
   Business Profile (posts, hours, media), BigQuery (scheduled queries, views), Looker,
   Search Console (URL inspection), Workspace (Docs, Drive organisation).
 
-## Wave 5 — Access and distribution
+## Wave 5 — Access and distribution (done)
+Shipped: Sign in with Google (`QUANTUM_ADS_AUTH=google`: OAuth proxy with DCR/CIMD, fail-closed
+allowlist, per-user Google token as the credential, writers list); `.mcpb` bundle, signed GHCR
+image, `server.json`, PyPI trusted publishing + MCP Registry jobs (enabled by `PYPI_PUBLISH`),
+Cloud Run guide. Per-user rate limits are per instance.
 - "Sign in with Google" (OAuthProxy): each user's Google token is their credential — per-user
   multi-tenancy without a tenants file; Dynamic Client Registration / CIMD.
 - PyPI trusted publishing (`uvx quantum-ads-mcp`), official MCP Registry `server.json`, `.mcpb`

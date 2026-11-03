@@ -1,0 +1,59 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.casius999/quantum-ads-mcp",
+  "title": "Quantum ADS",
+  "description": "Google Ads v26 and 24 more Google marketing APIs: guarded writes, signed audit, rollback.",
+  "repository": {
+    "url": "https://github.com/Casius999/quantum-ads-mcp",
+    "source": "github"
+  },
+  "version": "0.9.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "quantum-ads-mcp",
+      "version": "0.9.0",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "GOOGLE_ADS_DEVELOPER_TOKEN",
+          "description": "Google Ads API developer token",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "GOOGLE_ADS_CLIENT_ID",
+          "description": "OAuth client id",
+          "isRequired": true
+        },
+        {
+          "name": "GOOGLE_ADS_CLIENT_SECRET",
+          "description": "OAuth client secret",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "GOOGLE_ADS_REFRESH_TOKEN",
+          "description": "OAuth refresh token carrying the scopes of the connectors you use",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "GOOGLE_CLOUD_PROJECT",
+          "description": "GCP project for BigQuery, Vertex, Language, reCAPTCHA and quota routing",
+          "isRequired": false
+        },
+        {
+          "name": "QUANTUM_ADS_READ_ONLY",
+          "description": "true (default) refuses every write; false enables guarded writes",
+          "isRequired": false,
+          "default": "true"
+        }
+      ]
+    }
+  ]
+}

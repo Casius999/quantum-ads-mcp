@@ -24,6 +24,13 @@ from .connectors.google_ads.sdk import (
 )
 from .core.observability.recorder import CallRecorder
 from .core.observability.tracing import configure_tracing
+from .core.remote.google_signin import (
+    GoogleUserDirectory,
+    SignInConfig,
+    build_google_auth,
+    google_middleware,
+    signin_config_from_env,
+)
 from .core.remote.http import (
     RemoteConfig,
     build_auth,
@@ -60,7 +67,9 @@ def call_log_sink(env: Mapping[str, str]) -> Callable[[str], None] | None:
     return logger.info
 
 
-def assemble(env: Mapping[str, str], remote: RemoteConfig | None = None) -> AssembledServer:
+def assemble(
+    env: Mapping[str, str], remote: RemoteConfig | SignInConfig | None = None
+) -> AssembledServer:
     """The production server: every backend wired, observed; auth + tenancy when remote."""
     configure_tracing(env)
     common: dict[str, Any] = {
@@ -74,6 +83,13 @@ def assemble(env: Mapping[str, str], remote: RemoteConfig | None = None) -> Asse
     }
     if remote is None:
         return build_server(**common)
+    if isinstance(remote, SignInConfig):
+        return build_server(
+            **common,
+            auth=build_google_auth(remote),
+            middleware=google_middleware(remote),
+            tenants=GoogleUserDirectory(env, build_backends),
+        )
     tenants = load_tenants(env, build_backends)
     return build_server(
         **common,
@@ -87,7 +103,11 @@ def _serve(args: argparse.Namespace, env: dict[str, str]) -> None:
     if args.transport == "stdio":
         assemble(env).app.run()
         return
-    remote = remote_config_from_env(env, host=args.host, port=args.port)
+    remote: RemoteConfig | SignInConfig
+    if (env.get("QUANTUM_ADS_AUTH") or "").lower() == "google":
+        remote = signin_config_from_env(env, host=args.host, port=args.port)
+    else:
+        remote = remote_config_from_env(env, host=args.host, port=args.port)
     assemble(env, remote).app.run(
         transport="http",
         host=remote.host,
