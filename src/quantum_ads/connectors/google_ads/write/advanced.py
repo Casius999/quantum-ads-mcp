@@ -17,6 +17,7 @@ from ....core.mcp.register import add_tool
 from ....core.registry.registry import ToolSpec
 from ....core.safety.write_executor import WriteExecutor
 from .operations import InvalidOperation, build_search_campaign, validate_operations
+from .pmax import build_pmax_campaign
 
 _NOT_CONFIGURED: dict[str, object] = {
     "error": {"code": "MUTATE_NOT_CONFIGURED", "message": "no mutate_factory wired"}
@@ -95,6 +96,50 @@ def register_google_ads_advanced_write(app: FastMCP, ctx: ServerContext) -> list
         batch: dict[str, object] = {"entity": "mutate", "operations": operations}
         return run("ads.campaign.create_search", customer_id, [batch], confirm)
 
+    def ads_campaign_create_pmax(
+        customer_id: str,
+        name: str,
+        daily_budget_micros: int,
+        final_url: str,
+        business_name: str,
+        headlines: list[str],
+        long_headlines: list[str],
+        descriptions: list[str],
+        logo_base64: str,
+        images: list[dict[str, str]],
+        geo_target_ids: list[str] | None = None,
+        language_ids: list[str] | None = None,
+        bidding: str = "MAXIMIZE_CONVERSIONS",
+        target_cpa_micros: int | None = None,
+        target_roas: float | None = None,
+        status: str = "PAUSED",
+        confirm: str | None = None,
+    ) -> dict[str, object]:
+        try:
+            operations = build_pmax_campaign(
+                customer_id=customer_id,
+                name=name,
+                daily_budget_micros=daily_budget_micros,
+                final_url=final_url,
+                business_name=business_name,
+                headlines=headlines,
+                long_headlines=long_headlines,
+                descriptions=descriptions,
+                logo_base64=logo_base64,
+                images=images,
+                geo_target_ids=geo_target_ids or (),
+                language_ids=language_ids or (),
+                bidding=bidding,
+                target_cpa_micros=target_cpa_micros,
+                target_roas=target_roas,
+                status=status,
+            )
+            validate_operations(operations, ctx.version)
+        except InvalidOperation as exc:
+            return _invalid(exc)
+        batch: dict[str, object] = {"entity": "mutate", "operations": operations}
+        return run("ads.campaign.create_pmax", customer_id, [batch], confirm)
+
     def recommendations(entity: str, op: str) -> Callable[..., dict[str, object]]:
         def tool(
             customer_id: str, resource_names: list[str], confirm: str | None = None
@@ -119,6 +164,13 @@ def register_google_ads_advanced_write(app: FastMCP, ctx: ServerContext) -> list
             "Create a complete Search campaign in one atomic call: budget, bidding, geo/language "
             "targeting, negatives, ad group, keywords and a responsive search ad.",
             ads_campaign_create_search,
+        ),
+        (
+            "ads.campaign.create_pmax",
+            "Create a complete Performance Max campaign in one atomic call: budget, bidding, "
+            "targeting, text + image assets (base64, e.g. from vertex.imagen.generate), asset "
+            "group, and brand assets (business name, logo) under brand guidelines.",
+            ads_campaign_create_pmax,
         ),
         (
             "ads.recommendations.apply",
