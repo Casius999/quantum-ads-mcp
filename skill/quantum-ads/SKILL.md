@@ -70,7 +70,9 @@ their own Google token, allowlist + writers list): `docs/DEPLOY.md`. Other remot
   `creative.pmax_pack` (copy checked against Google Ads limits, one automatic repair round;
   images fitted to spec) — Vertex first, then the free `QUANTUM_ADS_LLM_*` endpoint, SDXL
   (`QUANTUM_ADS_IMAGE_MODEL`) and FLUX.
-- Full generated list (162 tools, read vs guarded write): `references/tool-catalog.md`.
+- **Negatives in one call:** `insights.apply_negatives` mines wasted terms and writes them as
+  exact negatives (guarded, audited, undone by `ads.rollback`).
+- Full generated list (163 tools, read vs guarded write): `references/tool-catalog.md`.
 - GAQL recipes + payload patterns: `references/gaql-and-payloads.md`.
 
 ## Changing anything in the other Google APIs

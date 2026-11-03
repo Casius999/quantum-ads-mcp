@@ -175,3 +175,25 @@ omit = [
   "*/connectors/googleapi/sdk.py",
   "*/__main__.py",
 ]
+
+[tool.mutmut]
+# Mutation testing of the safety-critical pure modules: run `uv run --with mutmut mutmut run`
+# (Linux/WSL; see .github/workflows/mutation.yml). Every surviving mutant is a missing assertion.
+source_paths = [
+  "src/quantum_ads/core/safety/reversal.py",
+  "src/quantum_ads/core/safety/policy.py",
+  "src/quantum_ads/core/safety/confirm.py",
+  "src/quantum_ads/connectors/googleapi/discovery.py",
+  "src/quantum_ads/connectors/googleapi/rollback.py",
+]
+also_copy = ["src/", "tests/"]
+pytest_add_cli_args = ["-p", "no:cacheprovider", "-m", "not live", "-q"]
+pytest_add_cli_args_test_selection = [
+  "tests/unit/test_reversal.py",
+  "tests/unit/test_safety_boundaries.py",
+  "tests/unit/test_write_policy.py",
+  "tests/unit/test_confirm.py",
+  "tests/unit/test_googleapi_discovery.py",
+  "tests/integration_mock/test_google_api_tools.py",
+  "tests/integration_mock/test_ads_rollback_tool.py",
+]

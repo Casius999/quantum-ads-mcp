@@ -1,0 +1,27 @@
+name: Mutation testing
+# Manual only (it is slow): mutates the safety-critical pure modules listed in
+# [tool.mutmut] and fails when the mutation score drops below MIN_SCORE.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mutmut:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - run: uv sync --extra dev --extra observability --extra anchoring
+      - run: uv run --with mutmut mutmut run --max-children 4
+      - name: Mutation score gate
+        env:
+          MIN_SCORE: "0.85"  # some survivors are equivalent or only change message wording
+        run: |
+          uv run --with mutmut mutmut results --all true > results.txt || true
+          killed=$(grep -c ": killed" results.txt || true)
+          survived=$(grep -c ": survived" results.txt || true)
+          grep ": survived" results.txt || true
+          python3 -c "k,s,m=$killed,$survived,float('$MIN_SCORE'); score=k/(k+s); print(f'mutation score {score:.1%} ({k} killed, {s} survived)'); raise SystemExit(score < m)"

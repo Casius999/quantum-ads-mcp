@@ -278,3 +278,13 @@ def test_api_failures_come_back_as_structured_errors():
     ).app
     (out,) = _calls(app, ("google.api.read", {"api": "drive", "method": "widgets.list"}))
     assert out["error"]["code"] == "API_ERROR" and "403" in out["error"]["message"]  # type: ignore[index]
+
+
+def test_unknown_api_names_get_the_closest_exposed_one():
+    near, far = _calls(
+        _session(Fake()),
+        ("google.api.methods", {"api": "google-analytics-admin"}),
+        ("google.api.methods", {"api": "zzz"}),
+    )
+    assert "did you mean 'analyticsadmin'?" in near["error"]["message"]  # type: ignore[index]
+    assert "did you mean" not in far["error"]["message"]  # type: ignore[index]

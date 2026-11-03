@@ -246,9 +246,14 @@ against the block's merkle root from a public explorer rather than trusting the 
 
 ## Roadmap
 
-Open items need resources the project cannot create on its own: enterprise accounts for the ADH,
-CM360, Business Profile and DV360 live checks, and a Google Ads campaign to validate
-`ads.campaign.set_status` against. Paid Veo generation stays opt-in (`VERTEX_LIVE_VEO=1`).
+Waves 1–6 of [docs/ROADMAP_V1.md](docs/ROADMAP_V1.md) are in: MCP-native foundation, Google Ads
+complete, insights and creative studio, the generic Google API plane, Sign in with Google and
+distribution, agent evals and mutation testing. Still open:
+
+- typed output schemas per tool, record/replay cassettes for credential-free CI, async I/O;
+- live checks that need accounts the project cannot create (ADH, CM360, Business Profile, DV360),
+  a real Google sign-in on a public URL, and PyPI trusted publishing (one setting on pypi.org);
+- paid Veo generation stays opt-in (`VERTEX_LIVE_VEO=1`).
 
 ## License
 

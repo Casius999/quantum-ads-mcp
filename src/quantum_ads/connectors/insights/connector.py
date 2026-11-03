@@ -16,6 +16,7 @@ from fastmcp import FastMCP
 from ...core.context import ServerContext
 from ...core.mcp.register import add_tool
 from ...core.registry.registry import Capability, ToolSpec
+from ...core.safety.write_executor import WriteExecutor
 from . import analytics, creative
 
 ReadFn = Callable[[str, dict[str, object]], list[dict[str, object]]]
@@ -104,8 +105,38 @@ def register_insights(app: FastMCP, ctx: ServerContext) -> None:
         return {
             "window": [start, end],
             **mined,
-            "apply_with": "ads.mutate (pass the selected 'operation' objects)",
+            "apply_with": "insights.apply_negatives, or ads.mutate with selected 'operation' objects",
         }
+
+    def insights_apply_negatives(
+        customer_id: str,
+        days: int = 30,
+        min_waste_cost_micros: int = 5_000_000,
+        confirm: str | None = None,
+    ) -> dict[str, object]:
+        """Mine wasted search terms and add them as exact negatives in one guarded write."""
+        mined = insights_search_terms(customer_id, days, min_waste_cost_micros)
+        negatives = cast(list[dict[str, Any]], mined["negative_keywords"])
+        if not negatives:
+            return {
+                "applied": False,
+                "negative_keywords": [],
+                "message": "no wasted search term found",
+            }
+        if ctx.mutate_factory is None:
+            return {
+                "applied": False,
+                "error": {"code": "MUTATE_NOT_CONFIGURED", "message": "no mutate_factory wired"},
+            }
+        batch: dict[str, object] = {
+            "entity": "mutate",
+            "operations": [n["operation"] for n in negatives],
+        }
+        # An ads.* op, so ads.rollback can undo it from the audit.
+        result = WriteExecutor(ctx.mutate(), ctx.safety, ctx.audit).execute(
+            op="ads.negatives.apply", customer_id=customer_id, operations=[batch], confirm=confirm
+        )
+        return {**result, "negative_keywords": [n["term"] for n in negatives]}
 
     def insights_ga4_reconcile(
         customer_id: str, property_id: str, days: int = 28
@@ -295,10 +326,24 @@ def register_insights(app: FastMCP, ctx: ServerContext) -> None:
     ]
     for name, description, fn in tools:
         add_tool(app, name, description, fn)
+    apply_summary = (
+        "Find wasted search terms (cost, no conversion) and add them as exact negative keywords "
+        "in one guarded, audited write (undo with ads.rollback)."
+    )
+    add_tool(app, "insights.apply_negatives", apply_summary, insights_apply_negatives)
     ctx.registry.register(
         Capability(
             connector="insights",
             domain="read",
             tools=[ToolSpec(name=n, summary=d) for n, d, _ in tools],
+        )
+    )
+    ctx.registry.register(
+        Capability(
+            connector="insights",
+            domain="write",
+            tools=[
+                ToolSpec(name="insights.apply_negatives", summary=apply_summary, read_only=False)
+            ],
         )
     )
