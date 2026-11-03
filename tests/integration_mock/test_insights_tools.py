@@ -220,3 +220,44 @@ def test_failed_repair_keeps_the_usable_first_answer():
         {"llm.chat": hopeless}, "creative.search_ads", {"product": "x", "audience": "y"}
     )
     assert out["error"]["code"] == "CREATIVE_FAILED" and len(calls) == 2  # type: ignore[index]
+
+
+def test_apply_negatives_mines_and_writes_in_one_guarded_call():
+    sent: list[tuple[str, list[dict[str, object]], bool]] = []
+
+    def mutate_factory(creds, version):  # type: ignore[no-untyped-def]
+        def mutate(customer_id, operations, validate_only):  # type: ignore[no-untyped-def]
+            sent.append((customer_id, operations, validate_only))
+            return {"results": [{}]}
+
+        return mutate
+
+    def run(env: dict[str, str], factory, stream=_stream_factory) -> dict[str, object]:  # type: ignore[no-untyped-def]
+        app = build_server(
+            env={**_ENV, **env},
+            stream_factory=stream,
+            mutate_factory=factory,
+            connectors=[register_insights],
+        ).app
+
+        async def scenario() -> dict[str, object]:
+            async with Client(app) as client:
+                result = await client.call_tool("insights.apply_negatives", {"customer_id": "1"})
+                return result.structured_content  # type: ignore[return-value]
+
+        return asyncio.run(scenario())
+
+    writable = {"QUANTUM_ADS_READ_ONLY": "false", "QUANTUM_ADS_WRITE_MODE": "auto"}
+    applied = run(writable, mutate_factory)
+    assert applied["applied"] is True and applied["negative_keywords"] == ["free"]
+    assert [preview for _, _, preview in sent] == [True, False]
+    criterion = sent[-1][1][0]["operations"][0]["campaign_criterion_operation"]  # type: ignore[index]
+    assert criterion["create"]["negative"] is True
+    assert run(writable, None)["error"]["code"] == "MUTATE_NOT_CONFIGURED"  # type: ignore[index]
+    nothing = run(writable, mutate_factory, stream=lambda c, v: lambda cid, q: [])
+    assert nothing == {
+        "applied": False,
+        "negative_keywords": [],
+        "message": "no wasted search term found",
+    }
+    assert run({}, mutate_factory)["error"]["code"] == "READ_ONLY"  # type: ignore[index]

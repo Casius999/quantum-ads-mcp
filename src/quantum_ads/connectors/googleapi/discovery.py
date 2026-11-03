@@ -10,6 +10,7 @@ is passed in as a dict, so this module needs no SDK and no network.
 
 from __future__ import annotations
 
+import difflib
 import re
 from dataclasses import dataclass
 from typing import Any
@@ -120,12 +121,20 @@ def find_method(doc: dict[str, Any], method_id: str) -> Method:
     # Ids carry the API's own prefix, which can differ from the document name
     # (searchconsole publishes ``webmasters.sites.list``), so match with or without it.
     methods = all_methods(doc)
+    method_id = re.sub(r"^v[0-9][\w.]*:", "", method_id.strip())  # "v1beta:properties..." -> ...
     for method in methods:
         if method_id in (method.id, method.id.split(".", 1)[-1]):
             return method
     resource = method_id.rsplit(".", 1)[0]
     near = [m.id for m in methods if m.resource == resource or m.resource.endswith("." + resource)]
-    hint = f"; methods on {resource}: {', '.join(near)}" if near else ""
+    if not near:
+        ids = [m.id for m in methods]
+        near = difflib.get_close_matches(
+            method_id, ids, n=3, cutoff=0.5
+        ) or difflib.get_close_matches(
+            method_id, [i.split(".", 1)[-1] for i in ids], n=3, cutoff=0.5
+        )
+    hint = f"; did you mean: {', '.join(near)}" if near else ""
     raise InvalidCall(
         f"unknown method {method_id!r} in {doc.get('name')} {doc.get('version')}{hint}"
     )
@@ -235,8 +244,15 @@ def validate_call(
     known = {**doc.get("parameters", {}), **method.parameters}
     unknown = sorted(set(params) - set(known))
     if unknown:
+        fields = schema_fields(doc, method.request_ref)
+        body_hint = (
+            f"; request body fields go in `body` ({method.request_ref}: {', '.join(sorted(fields))})"
+            if fields
+            else ""
+        )
         raise InvalidCall(
-            f"{method.id}: unknown parameter(s) {unknown} (accepted: {sorted(method.parameters)})"
+            f"{method.id}: unknown parameter(s) {unknown} "
+            f"(URL parameters accepted: {sorted(method.parameters)}){body_hint}"
         )
     missing = [name for name in method.required if params.get(name) in (None, "")]
     if missing:

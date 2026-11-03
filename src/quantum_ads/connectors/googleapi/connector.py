@@ -9,7 +9,9 @@ auto commit, signed audit with an inverse call for rollback). Deletes need ``all
 
 from __future__ import annotations
 
+import difflib
 import functools
+import re
 from collections.abc import Callable
 from typing import Any, cast
 
@@ -71,7 +73,13 @@ def register_google_api(app: FastMCP, ctx: ServerContext) -> None:
 
     def target(api: str, version: str | None) -> tuple[str, str]:
         if api not in APIS:
-            raise InvalidCall(f"api {api!r} is not exposed; available: {sorted(APIS)}")
+            squashed = re.sub(r"[^a-z0-9]", "", api.lower()).removeprefix("google")
+            by_key = {re.sub(r"[^a-z0-9]", "", a.lower()): a for a in APIS}
+            guess = by_key.get(squashed) or next(
+                iter(difflib.get_close_matches(squashed, list(by_key), n=1, cutoff=0.6)), None
+            )
+            hint = f"; did you mean {by_key.get(guess, guess)!r}?" if guess else ""
+            raise InvalidCall(f"api {api!r} is not exposed{hint} Available: {sorted(APIS)}")
         return api, version or APIS[api]
 
     def document(api: str, version: str) -> dict[str, Any]:
@@ -230,7 +238,10 @@ def register_google_api(app: FastMCP, ctx: ServerContext) -> None:
         (
             "google.api.call",
             "Run a write method of any listed Google API (GA4 Admin, GTM, Merchant, YouTube, DV360, "
-            "CM360, Business Profile, Search Console, Sheets/Drive/Slides...): contract-checked, "
+            "CM360, Business Profile, Search Console, Sheets/Drive/Slides...). `api` is the short "
+            "name from google.api.list (e.g. analyticsadmin), `method` the id from "
+            "google.api.methods (e.g. properties.customDimensions.create), `params` only the URL "
+            "path/query parameters (e.g. parent), `body` the request object. Contract-checked, "
             "guarded, audited, reversible where the API allows; deletes need allow_delete.",
             google_api_call,
         ),

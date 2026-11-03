@@ -67,7 +67,11 @@ Cloud Run guide. Per-user rate limits are per instance.
 - PyPI trusted publishing (`uvx quantum-ads-mcp`), official MCP Registry `server.json`, `.mcpb`
   one-click bundle, signed container image, Cloud Run deployment, shared rate limits.
 
-## Wave 6 — Engineering assurance
+## Wave 6 — Engineering assurance (evals + mutation testing done)
+Shipped: `python -m quantum_ads.evals` (a real LLM operates the server on scripted backends;
+5/5 with a free Mistral Small 3.2 after fixing what the first run exposed) and mutation testing of
+the safety-critical modules (91.1 % score, gated at 85 % in `mutation.yml`). Still open below:
+cassettes, async I/O, typed output schemas.
 - Agent eval harness (task suite measuring an LLM operating the server), mutation testing,
   record/replay cassettes of live calls for credential-free CI, async I/O for HTTP scale,
   typed output schemas.

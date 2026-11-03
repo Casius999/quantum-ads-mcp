@@ -6,7 +6,30 @@ broad-scope OAuth token. The suite lives under `tests/live_smoke/` and runs with
 mutated. The only billable calls are one short Gemini text and one Gemini image generation
 (a few cents); Veo video generation is opt-in (`VERTEX_LIVE_VEO=1`, several USD per clip).
 
-## 2026-11-03 — wave 5, sign-in and distribution (current)
+## 2026-11-03 — wave 6, agent evals (current)
+
+- `python -m quantum_ads.evals` lets a real LLM operate the server, through a real MCP client, on
+  scripted backends: pause a campaign, name the top spender, negate wasted search terms, create
+  a GA4 custom dimension through `google.api.call`, and respect read-only mode.
+- First run with a free model (Mistral Small 3.2 on the keyless OVHcloud endpoint): 3/5. The
+  traces showed why: the model found the wasted terms but did not chain a second write, and on
+  GA4 it put body fields in `params`, prefixed the version and invented an API name.
+- Fixes in the tools, not in the tasks: `insights.apply_negatives` (mine + write in one guarded
+  call, undone by `ads.rollback`); `google.api.*` errors now name the closest API and method,
+  say which fields belong in `body`, and accept a `v1beta:` prefix. Second run: 5/5, the GA4
+  task recovering from one error message on its own.
+
+### Mutation testing (same day)
+
+- mutmut on the confirmation token, the write policy, rollback selection, Discovery validation
+  and inverse derivation: first run 703 killed / 147 survived (82.7 %).
+- The survivors were real gaps: the confirmation token's insensitivity to key order, the exact
+  policy boundaries (a cap is inclusive, the hour window includes its start and excludes its
+  end), a subject containing ':' in the tenant check, an empty required value, and documents
+  without global parameters. Tests added for each: 774 killed / 76 survived (91.1 %). Most of
+  the rest are equivalent mutants or only change the wording of suggestions.
+
+## 2026-11-03 — wave 5, sign-in and distribution
 
 - The `.mcpb` bundle validated and packed with `@anthropic-ai/mcpb` 2.1.2, was unpacked and
   started with its own manifest command (`uv run --directory <bundle> ... server.py`): 162 tools,

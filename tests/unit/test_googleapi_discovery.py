@@ -146,7 +146,7 @@ def test_methods_are_classified_read_write_delete():
 
 def test_find_method_accepts_short_ids_and_hints_on_typos():
     assert discovery.find_method(DOC, "widgets.get").id == "demo.widgets.get"
-    with pytest.raises(InvalidCall, match="methods on widgets: .*demo.widgets.get"):
+    with pytest.raises(InvalidCall, match="did you mean: .*demo.widgets.get"):
         discovery.find_method(DOC, "widgets.fetch")
     with pytest.raises(InvalidCall, match=r"unknown method 'nope.x' in demo v1$"):
         discovery.find_method(DOC, "nope.x")
@@ -374,3 +374,105 @@ def test_scope_gap_names_the_scopes_a_token_lacks():
     assert discovery.scope_gap(method, {"b", "c"}) == []
     assert discovery.scope_gap(method, {"c"}) == ["a", "b"]
     assert discovery.scope_gap(discovery.Method("x.y.z", "GET", "", {}, None, ""), set()) == []
+
+
+def test_errors_teach_the_agent_how_to_fix_the_call():
+    assert discovery.find_method(DOC, "v1:widgets.get").id == "demo.widgets.get"
+    with pytest.raises(InvalidCall, match=r"did you mean: demo.widgets.gadgets.insert"):
+        discovery.find_method(DOC, "gadget.insrt")
+    with pytest.raises(
+        InvalidCall, match=r"request body fields go in `body` \(Widget: .*displayName"
+    ):
+        discovery.validate_call(DOC, "widgets.create", {"parent": "p", "displayName": "x"})
+    with pytest.raises(InvalidCall) as no_body:
+        discovery.validate_call(DOC, "widgets.get", {"name": "widgets/1", "x": 1})
+    assert "body" not in str(no_body.value)
+
+
+def test_method_fields_come_from_the_document():
+    raw = {
+        "name": "d",
+        "resources": {
+            "r": {
+                "methods": {
+                    "flat": {
+                        "id": "d.r.flat",
+                        "flatPath": "v1/r/{id}",
+                        "path": "v1/{+name}",
+                        "scopes": ["s1", "s2"],
+                    },
+                    "plain": {
+                        "id": "d.r.plain",
+                        "path": "v1/{+name}",
+                        "description": "One.\nTwo.\nThree.",
+                    },
+                    "bare": {"id": "d.r.bare"},
+                }
+            }
+        },
+    }
+    flat, plain, bare = (discovery.find_method(raw, f"r.{n}") for n in ("flat", "plain", "bare"))
+    assert flat.path == "v1/r/{id}" and flat.scopes == ("s1", "s2")
+    assert plain.path == "v1/{+name}" and discovery.describe(plain)["summary"] == "One."
+    assert (
+        bare.path == ""
+        and bare.http_method == "GET"
+        and bare.description == ""
+        and bare.scopes == ()
+    )
+    # A document without global parameters still validates.
+    assert discovery.validate_call(raw, "r.bare", {}).id == "d.r.bare"
+
+
+def test_an_empty_required_value_counts_as_missing():
+    with pytest.raises(InvalidCall, match=r"missing required parameter\(s\) \['parent'\]"):
+        discovery.validate_call(DOC, "widgets.create", {"parent": ""})
+
+
+def test_error_lists_are_comma_separated():
+    with pytest.raises(InvalidCall, match=r"known: child, children, displayName, enabled, labels"):
+        discovery.validate_call(DOC, "widgets.create", {"parent": "p"}, {"zzz": 1})
+    with pytest.raises(InvalidCall, match=r"\(Widget: child, children, displayName"):
+        discovery.validate_call(DOC, "widgets.create", {"parent": "p", "zzz": 1})
+
+
+def test_schema_fields_without_item_type_or_description():
+    doc = {
+        "schemas": {
+            "S": {
+                "properties": {"a": {"type": "array", "items": {}}, "b": {}, "c": {"type": "array"}}
+            }
+        }
+    }
+    assert discovery.schema_fields(doc, "S") == {"a": "array<any>", "b": "any", "c": "array<any>"}
+
+
+def test_update_mask_wins_over_the_body_keys():
+    patch = discovery.find_method(DOC, "widgets.patch")
+    before = {"displayName": "Old", "size": 3}
+    inverse = rollback.inverse_of_update(
+        "demo",
+        "v1",
+        patch,
+        {"name": "widgets/1", "updateMask": "size"},
+        before,
+        {"displayName": "x"},
+    )
+    assert inverse["body"] == {"size": 3}
+
+
+def test_create_inverse_mixes_response_ids_and_call_params():
+    orphan = discovery.find_method(DOC, "orphans.create")
+    inverse = rollback.inverse_operations(
+        DOC, "demo", "v1", orphan, {"owner": "o"}, {"slot": "s1"}, None
+    )
+    assert inverse[0]["params"] == {"owner": "o", "slot": "s1"}
+    # An empty identifier in the response is not used; the call's own parameter is.
+    blank = rollback.inverse_of_create(
+        DOC, "demo", "v1", orphan, {"owner": "o", "slot": "s2"}, {"slot": ""}
+    )
+    assert blank is not None and blank["params"]["slot"] == "s2"
+    # A response "id" only fills parameters named like an id.
+    assert (
+        rollback.inverse_of_create(DOC, "demo", "v1", orphan, {"owner": "o"}, {"id": "9"}) is None
+    )
