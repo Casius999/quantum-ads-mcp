@@ -57,14 +57,19 @@ QUANTUM_ADS_READ_ONLY=true            # writes refused until set to false
 Optional: `GOOGLE_OAUTH_{CLIENT_ID,CLIENT_SECRET,REFRESH_TOKEN}` (separate non-Ads credential),
 `GOOGLE_VERTEX_LOCATION` (default `global`), `LOOKERSDK_{BASE_URL,CLIENT_ID,CLIENT_SECRET}`,
 `GOOGLE_ADS_API_VERSION`, `GOOGLE_ADS_LOGIN_CUSTOMER_ID`, `QUANTUM_ADS_CONNECTORS` (mount a
-subset), `QUANTUM_ADS_AUDIT_DIR` (audit ledger location; empty = in memory). Remote (HTTP) serving, tokens, scopes and tenants: see "Remote serving" in
+subset), `QUANTUM_ADS_AUDIT_DIR` (audit ledger location; empty = in memory), `QUANTUM_ADS_LLM_{BASE_URL,API_KEY,MODEL}` + `QUANTUM_ADS_IMAGE_MODEL` (free creative fallback, any OpenAI-compatible endpoint). Remote (HTTP) serving, tokens, scopes and tenants: see "Remote serving" in
 `references/auth-and-guardrails.md`. Full matrix + secret hygiene: same file.
 
 ## Tool catalog
 - **Meta:** `health` (incl. call counters), `list_capabilities`, `describe_tool` — call
   `list_capabilities` first. **Audit:** `audit.status`, `audit.anchor` (Bitcoin via
   OpenTimestamps), `audit.anchor_status`.
-- Full generated list (150 tools, read vs guarded write): `references/tool-catalog.md`.
+- **Insights:** `insights.anomalies`, `insights.pacing`, `insights.search_terms` (returns
+  ready `ads.mutate` operations), `insights.ga4_reconcile`. **Creative:** `creative.search_ads`,
+  `creative.pmax_pack` (copy checked against Google Ads limits, one automatic repair round;
+  images fitted to spec) — Vertex first, then the free `QUANTUM_ADS_LLM_*` endpoint, SDXL
+  (`QUANTUM_ADS_IMAGE_MODEL`) and FLUX.
+- Full generated list (156 tools, read vs guarded write): `references/tool-catalog.md`.
 - GAQL recipes + payload patterns: `references/gaql-and-payloads.md`.
 
 ## Creating and changing anything in Google Ads

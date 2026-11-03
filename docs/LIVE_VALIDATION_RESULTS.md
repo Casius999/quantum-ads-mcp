@@ -6,7 +6,23 @@ broad-scope OAuth token. The suite lives under `tests/live_smoke/` and runs with
 mutated. The only billable calls are one short Gemini text and one Gemini image generation
 (a few cents); Veo video generation is opt-in (`VERTEX_LIVE_VEO=1`, several USD per clip).
 
-## 2026-11-03 — wave 2C, Demand Gen, experiments, batch jobs, Reach (current)
+## 2026-11-03 — wave 3, insights and creative studio (current)
+
+- Through the shipped stdio server on the real account: `insights.anomalies`, `insights.pacing`
+  and `insights.search_terms` run their GAQL without error (empty on the QA account, which has
+  no traffic).
+- Vertex now answers `403 BILLING_DISABLED` for the GCP project (billing is off; not changed
+  here). The creative tools fell back to the free chain with no key: OVHcloud AI Endpoints
+  (Mistral Small 3.2) for copy and its SDXL images API, all through the server:
+  `creative.search_ads` returned 12-15 valid headlines; `creative.pmax_pack` returned 14
+  headlines, 3 long headlines, 4 descriptions and two images, fitted to 1200x628 and 1200x1200.
+- Found on the way, all handled in code: the NVIDIA NIM free models answer `410 Gone`; the
+  keyless endpoint allows 2 requests/min (429 now waits for `Retry-After`); its images API only
+  accepts 1024x1024 (requested, then centre-cropped); a small model writes over-long headlines
+  and drops commas (lenient JSON repair + one targeted rewrite round); the anonymous ZeroGPU
+  quota for FLUX was spent (the error is reported per provider).
+
+## 2026-11-03 — wave 2C, Demand Gen, experiments, batch jobs, Reach
 
 - Demand Gen build (9 linked operations) and an A/B experiment on the QA campaign (experiment
   + control + treatment arms) accepted by the real API in `validate_only`; nothing created.

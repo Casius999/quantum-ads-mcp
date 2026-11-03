@@ -32,7 +32,11 @@ audit trail and, where the API allows, an inverse operation for rollback; one PR
 - Rollback: before-state captured for updates, inverse operation recorded in the audit.
 - Simulations and auction insights in reports.
 
-## Wave 3 — Creative studio + campaign intelligence
+## Wave 3 — Creative studio + campaign intelligence (core done, v0.9.0)
+Shipped: `insights.anomalies` (robust z per campaign), `insights.pacing`,
+`insights.search_terms` (ready `ads.mutate` operations), `insights.ga4_reconcile`,
+`creative.search_ads`, `creative.pmax_pack` (validated copy, one repair round, images fitted
+to spec) with a free fallback chain (OpenAI-compatible text, SDXL, FLUX). Remaining below.
 - Creative pipeline: Gemini copy (RSA headlines/descriptions, policy pre-check via
   validate_only) → Gemini image / free video → asset upload → asset groups.
 - Monitoring: anomaly detection on spend/conversions, budget pacing, conversion-lag aware
