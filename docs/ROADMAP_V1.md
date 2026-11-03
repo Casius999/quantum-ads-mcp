@@ -22,7 +22,7 @@ audit trail and, where the API allows, an inverse operation for rollback; one PR
 - Resources (capabilities, Ads sunset table, field deltas, tenant/account context) and prompts
   (weekly audit, PMax diagnosis, Search launch, budget reallocation, feed optimisation).
 
-## Wave 2 — Google Ads, complete (done: generic mutate, Search + PMax builders, recommendations, Keyword Planner, rollback; next: Demand Gen, experiments, batch jobs, Reach Planner)
+## Wave 2 — Google Ads, complete (done, v0.9.0)
 - `ads.mutate`: generic `GoogleAdsService.Mutate` over every resource (partial failure,
   validate_only, response content), so nothing in the API is out of reach.
 - Curated builders: Search, Performance Max, Demand Gen, AI Max campaigns end to end (budget,
