@@ -6,7 +6,18 @@ broad-scope OAuth token. The suite lives under `tests/live_smoke/` and runs with
 mutated. The only billable calls are one short Gemini text and one Gemini image generation
 (a few cents); Veo video generation is opt-in (`VERTEX_LIVE_VEO=1`, several USD per clip).
 
-## 2026-11-03 — wave 2B, Performance Max and rollback (current)
+## 2026-11-03 — wave 2C, Demand Gen, experiments, batch jobs, Reach (current)
+
+- Demand Gen build (9 linked operations) and an A/B experiment on the QA campaign (experiment
+  + control + treatment arms) accepted by the real API in `validate_only`; nothing created.
+- A real BatchJob through the shipped server (a no-op rename of the QA campaign) ran to `DONE`:
+  1 operation executed, 0 failed; `ads.batch.status` reads it back.
+- Reach Planner answers `ACTION_NOT_PERMITTED — Developer Token not enabled`: Google restricts
+  ReachPlanService to allowlisted tokens; the tools return that as a structured `API_ERROR`
+  and the live test skips until the token is allowlisted.
+- Fixed on the way: `list_batch_job_results` no longer takes `page_size` in v26.
+
+## 2026-11-03 — wave 2B, Performance Max and rollback
 
 - `ads.campaign.create_pmax`: a complete Performance Max build (budget, campaign with brand
   guidelines, targeting, 10 text + 3 image assets, asset group, links, campaign brand assets —

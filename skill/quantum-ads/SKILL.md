@@ -1,6 +1,6 @@
 ---
 name: quantum-ads
-description: Use when operating the Quantum ADS MCP server — a sovereign Google marketing-agency control plane exposing 140 tools across 21 connectors (Ads API v26, GA4, GTM, Merchant, Data Manager, Search Console, YouTube, DV360/CM360/SA360, ADH, Business Profile, Workspace, BigQuery, Looker, Vertex AI, free text-to-video, Trends, Meridian, Language, reCAPTCHA), over stdio or OAuth 2.1-protected multi-tenant HTTP. Covers env-var auth per connector, remote serving, the generated tool catalog, GAQL recipes/payloads, version discipline (Nov 2026), and the guarded write / spend / honesty guardrails.
+description: Use when operating the Quantum ADS MCP server — a sovereign Google marketing-agency control plane exposing 150 tools across 21 connectors (Ads API v26, GA4, GTM, Merchant, Data Manager, Search Console, YouTube, DV360/CM360/SA360, ADH, Business Profile, Workspace, BigQuery, Looker, Vertex AI, free text-to-video, Trends, Meridian, Language, reCAPTCHA), over stdio or OAuth 2.1-protected multi-tenant HTTP. Covers env-var auth per connector, remote serving, the generated tool catalog, GAQL recipes/payloads, version discipline (Nov 2026), and the guarded write / spend / honesty guardrails.
 ---
 
 # Quantum ADS — Google marketing agency control plane (MCP, November 2026)
@@ -64,7 +64,7 @@ subset), `QUANTUM_ADS_AUDIT_DIR` (audit ledger location; empty = in memory). Rem
 - **Meta:** `health` (incl. call counters), `list_capabilities`, `describe_tool` — call
   `list_capabilities` first. **Audit:** `audit.status`, `audit.anchor` (Bitcoin via
   OpenTimestamps), `audit.anchor_status`.
-- Full generated list (140 tools, read vs guarded write): `references/tool-catalog.md`.
+- Full generated list (150 tools, read vs guarded write): `references/tool-catalog.md`.
 - GAQL recipes + payload patterns: `references/gaql-and-payloads.md`.
 
 ## Creating and changing anything in Google Ads
@@ -76,6 +76,10 @@ subset), `QUANTUM_ADS_AUDIT_DIR` (audit ledger location; empty = in memory). Rem
   negatives, ad group, keywords, RSA) in one call; use `status=PAUSED` to stage.
 - `ads.campaign.create_pmax` builds a full Performance Max campaign; images are base64 (e.g.
   from `vertex.imagen.generate`).
+- `ads.campaign.create_demand_gen`; A/B tests with `ads.experiment.create` (then edit the
+  treatment draft with `ads.mutate`), `.schedule`, `.promote`, `.end`; thousands of changes
+  at once with `ads.batch.submit` + `ads.batch.status`; `ads.reach.*` (Reach Planner needs an
+  allowlisted developer token, otherwise API_ERROR).
 - `ads.rollback` undoes the latest reversible Google Ads change of this tenant (or
   `audit_index`) from the signed audit trail; update masks are derived when omitted and may be
   snake_case.
